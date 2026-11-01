@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LectuNote AI - Status & Pemulihan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-primary-hover: #0D47A1;
+            --color-primary-light: #E3F2FD;
+            --color-primary-dark: #0D47A1;
+            --color-text-main: #0F172A;
+            --color-text-secondary: #64748B;
+            --color-text-muted: #94A3B8;
+            --color-surface-white: #FFFFFF;
+            --color-background-main: #F8FAFC;
+            --color-border-default: #E2E8F0;
+            --color-teal: #007887;
+            --color-teal-light: #ECFEFF;
+            --color-success: #15803D;
+            --color-success-light: #F0FDF4;
+            --color-error: #DC2626;
+            --color-error-light: #FEF2F2;
+            --color-warning-text: #92400E;
+            --color-warning-bg: #FFFBEB;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --sidebar-width: 256px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-background-main);
+            color: var(--color-text-main);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        .app-layout {
+            display: flex;
+            width: 100%;
+            min-height: 100dvh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background: var(--color-surface-white);
+            border-right: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px 20px;
+            min-height: 100dvh;
+            position: sticky;
+            top: 0;
+            height: 100dvh;
+            overflow-y: auto;
+            z-index: 50;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--color-text-main);
+        }
+
+        .brand-text span {
+            color: var(--color-teal);
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            background-color: var(--color-background-main);
+            color: var(--color-primary);
+        }
+
+        .nav-item.active a {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary);
+        }
+
+        .nav-item.active svg {
+            stroke: var(--color-primary);
+        }
+
+        .sidebar-footer {
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+        }
+
+        .user-role {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+        }
+
+        .tagline {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 40;
+        }
+
+        /* Main Wrapper */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-y: auto;
+        }
+
+        /* Top Header */
+        .top-header {
+            height: 80px;
+            background: var(--color-surface-white);
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .semester-pill {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .notification-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            transition: background 0.2s;
+        }
+
+        .notification-btn:hover {
+            background: var(--color-background-main);
+        }
+
+        /* Content Container */
+        .content-area {
+            padding: 32px 40px 60px 40px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* Page Title Section */
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .category-tag {
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            line-height: 1.25;
+        }
+
+        .page-desc {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        /* 2-Column States Grid */
+        .states-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* State Column & Box */
+        .state-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .state-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .state-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .state-card.compact {
+            padding: 20px;
+            gap: 8px;
+        }
+
+        /* Elements inside state cards */
+        .state-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .state-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            line-height: 1.3;
+        }
+
+        .state-card-desc {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Alert Banners */
+        .alert-box {
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .alert-box.alert-error {
+            background-color: var(--color-error-light);
+            color: var(--color-error);
+        }
+
+        .alert-box.alert-success {
+            background-color: var(--color-success-light);
+            color: var(--color-success);
+        }
+
+        .alert-box.alert-warning {
+            background-color: var(--color-warning-bg);
+            color: var(--color-warning-text);
+        }
+
+        /* Status Badge Pill */
+        .status-pill {
+            background-color: var(--color-success-light);
+            color: var(--color-success);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+        }
+
+        /* Button styles */
+        .btn-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            padding: 0 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: #FFFFFF;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-surface-white);
+            color: var(--color-primary);
+            border: 1px solid var(--color-border-default);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-background-main);
+            border-color: #CBD5E1;
+        }
+
+        .file-meta-tag {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .meta-subtitle {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Skeleton Loading Preview */
+        .skeleton-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px 0 6px 0;
+        }
+
+        .skeleton-bar {
+            height: 12px;
+            background: #E2E8F0;
+            border-radius: 6px;
+            animation: pulse 1.8s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Bottom Principle Card */
+        .principle-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .principle-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            line-height: 1.4;
+        }
+
+        .principle-desc {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .states-grid {
+                grid-template-columns: 1fr;
+            }
+            .content-area {
+                padding: 24px 24px 48px 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .top-header {
+                padding: 0 16px;
+                height: 64px;
+            }
+
+            .content-area {
+                padding: 20px 16px 40px 16px;
+                gap: 20px;
+            }
+
+            .page-title {
+                font-size: 26px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation Drawer Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <a href="dashboard.html" class="brand-logo">
+                    <div class="brand-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+                            <path d="M4 5.5v15M8 7h7M8 10h5"/>
+                            <path d="m14 13 5-5 2 2-5 5-3 1z"/>
+                        </svg>
+                    </div>
+                    <div class="brand-text">LectuNote <span>AI</span></div>
+                </a>
+
+                <div class="nav-section-title">RUANG BELAJAR</div>
+
+                <ul class="nav-menu">
+                    <li class="nav-item active">
+                        <a href="dashboard.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="unggah-materi.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span>Unggah Materi</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pustaka-materi.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                <line x1="10" y1="6" x2="16" y2="6"/>
+                                <line x1="10" y1="10" x2="16" y2="10"/>
+                            </svg>
+                            <span>Pustaka Materi</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pengaturan&pofile.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                            </svg>
+                            <span>Pengaturan</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-name">Aditya Ramadhan</div>
+                <div class="user-role">Mahasiswa teknik</div>
+                <div class="tagline">Ringkas. Pahami. Uji dirimu.</div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-wrapper">
+            <!-- Top App Bar -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle" aria-label="Buka menu navigasi">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="breadcrumb">Ruang belajar / Dashboard</div>
+                </div>
+                <div class="header-right">
+                    <span class="semester-pill">Semester ganjil · 2026/2027</span>
+                    <button class="notification-btn" aria-label="Notifikasi">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-area">
+                <!-- Header Title -->
+                <div class="page-header">
+                    <span class="category-tag">Panduan keadaan antarmuka</span>
+                    <h1 class="page-title">Status & pemulihan</h1>
+                    <p class="page-desc">Keadaan alternatif yang berdiri sendiri. Bukan error yang muncul bersamaan pada alur utama.</p>
+                </div>
+
+                <!-- 2-Column States Grid -->
+                <div class="states-grid">
+                    <!-- COLUMN 1 (A, C, E) -->
+                    <div class="state-column">
+                        <!-- STATE A -->
+                        <div class="state-label">○ A / Dashboard pertama kali</div>
+                        <div class="state-card">
+                            <div class="state-icon-box" style="color: var(--color-primary);">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                    <line x1="9" y1="7" x2="15" y2="7"/>
+                                    <line x1="9" y1="11" x2="15" y2="11"/>
+                                </svg>
+                            </div>
+                            <div class="state-card-title">Mulai dari satu materi.</div>
+                            <p class="state-card-desc">Unggah PDF kuliah pertamamu untuk membuat ringkasan, flashcards, dan latihan ujian.</p>
+                            <div>
+                                <a href="unggah-materi.html" class="btn btn-primary">+ Buat Study Kit Baru</a>
+                            </div>
+                        </div>
+
+                        <!-- Subcard Belum ada aktivitas -->
+                        <div class="state-card compact">
+                            <div style="font-size: 16px; font-weight: 700; color: var(--color-text-main);">Belum ada aktivitas</div>
+                            <div style="font-size: 14px; color: var(--color-text-secondary);">0 Study Kit · 0 kuis selesai · Rata-rata skor belum tersedia.</div>
+                        </div>
+
+                        <!-- STATE C -->
+                        <div class="state-label" style="margin-top: 16px;">○ C / Gangguan saat unggah</div>
+                        <div class="state-card">
+                            <div class="state-icon-box" style="color: #EF4444;">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                                    <line x1="12" y1="11" x2="12" y2="15"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <div class="state-card-title">Berkas belum berhasil diunggah.</div>
+                            <p class="state-card-desc">Periksa koneksimu, lalu coba lagi. Jangan mulai pemrosesan sebelum unggahan selesai.</p>
+                            <div class="file-meta-tag">Jaringan_Komputer_Bab_03.pdf · 2,4 MB</div>
+                            <div class="btn-group">
+                                <a href="unggah-materi.html" class="btn btn-primary">Coba Unggah Lagi</a>
+                                <a href="unggah-materi.html" class="btn btn-secondary">Ganti PDF</a>
+                            </div>
+                        </div>
+                        <div class="alert-box alert-error">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <span>Unggahan gagal. Berkas belum diproses.</span>
+                        </div>
+
+                        <!-- STATE E -->
+                        <div class="state-label" style="margin-top: 16px;">○ E / Konfirmasi kirim kuis</div>
+                        <div class="state-card">
+                            <div class="state-icon-box" style="color: var(--color-primary);">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                            </div>
+                            <div class="state-card-title">Kirim jawaban sekarang?</div>
+                            <p class="state-card-desc">5 pilihan ganda dan 2 esai sudah terisi. Setelah dikirim, jawaban sesi ini tidak dapat diubah.</p>
+                            <div class="status-pill">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Lengkap: 5/5 PG · 2/2 esai</span>
+                            </div>
+                            <div class="meta-subtitle">Skor PG maksimal 100. Esai menerima umpan balik AI terpisah.</div>
+                            <div class="btn-group">
+                                <a href="kuis-soal.html" class="btn btn-secondary">Periksa lagi</a>
+                                <a href="hasil.html" class="btn btn-primary">Ya, kirim</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMN 2 (B, D, F) -->
+                    <div class="state-column">
+                        <!-- STATE B -->
+                        <div class="state-label">○ B / Validasi sebelum proses</div>
+                        <div class="state-card">
+                            <!-- Block 1 -->
+                            <div class="alert-box alert-error">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <span>Format berkas belum didukung.</span>
+                            </div>
+                            <p class="state-card-desc" style="color: var(--color-text-main);">Catatan_Kuliah.docx bukan PDF. Pilih PDF dengan teks yang dapat dibaca.</p>
+                            <div>
+                                <a href="unggah-materi.html" class="btn btn-primary">Pilih PDF lain</a>
+                            </div>
+
+                            <!-- Block 2 -->
+                            <div class="alert-box alert-error" style="margin-top: 12px;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <span>Tidak ada teks yang bisa dibaca.</span>
+                            </div>
+                            <p class="state-card-desc" style="color: var(--color-text-main);">PDF mungkin kosong, terkunci, atau hanya berisi hasil pindai. Coba PDF teks lain atau periksa isi sumber.</p>
+                            <div>
+                                <a href="unggah-materi.html" class="btn btn-secondary">Ganti berkas</a>
+                            </div>
+                        </div>
+
+                        <!-- STATE D -->
+                        <div class="state-label" style="margin-top: 16px;">○ D / Setelah sumber terbaca</div>
+                        <div class="state-card">
+                            <div class="state-icon-box" style="color: var(--color-teal);">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                                    <path d="M5 3v4M3 5h4M19 17v4M17 19h4"/>
+                                </svg>
+                            </div>
+                            <div class="state-card-title">Study Kit belum berhasil dibuat.</div>
+                            <p class="state-card-desc">Terjadi kendala saat menyusun materi. Coba proses ulang atau periksa keterbacaan PDF.</p>
+                            <div class="alert-box alert-error">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <span>Pemrosesan berhenti · Ringkasan dan kuis belum tersedia.</span>
+                            </div>
+                            <div class="btn-group">
+                                <a href="pemrosesan-ai.html" class="btn btn-primary">Proses Ulang</a>
+                                <a href="unggah-materi.html" class="btn btn-secondary">Kembali ke Unggah</a>
+                            </div>
+                        </div>
+
+                        <!-- STATE F -->
+                        <div class="state-label" style="margin-top: 16px;">○ F / Status setelah aksi</div>
+                        <div class="alert-box alert-success">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span>Study Kit berhasil dibuat. Mulai dari ringkasannya.</span>
+                        </div>
+                        <div class="alert-box alert-error">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <span>Perubahan belum tersimpan. Coba lagi.</span>
+                        </div>
+
+                        <div class="state-card compact" style="margin-top: 4px;">
+                            <div style="font-size: 14px; font-weight: 600; color: var(--color-text-secondary);">Pratinjau materi sedang disiapkan</div>
+                            <div class="skeleton-container">
+                                <div class="skeleton-bar" style="width: 65%;"></div>
+                                <div class="skeleton-bar" style="width: 45%;"></div>
+                                <div class="skeleton-bar" style="width: 75%;"></div>
+                                <div class="skeleton-bar" style="width: 60%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Principle Card -->
+                <div class="principle-card">
+                    <h2 class="principle-title">Jelaskan masalah. Pertahankan konteks. Tawarkan langkah berikutnya.</h2>
+                    <p class="principle-desc">Kesalahan tidak boleh hanya dibedakan lewat warna. Pesan menyebutkan tahap, dampak pada data, dan aksi pemulihan. Ketahanan draf, pengulangan proses, serta pencegahan pengiriman ganda perlu diuji saat implementasi.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Responsive Mobile Drawer Navigation
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+
+        function toggleSidebar() {
+            const isOpen = sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('active', isOpen);
+            menuToggle.setAttribute('aria-expanded', isOpen);
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            menuToggle.setAttribute('aria-expanded', 'false');
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeSidebar();
+        });
+    </script>
+</body>
+</html>

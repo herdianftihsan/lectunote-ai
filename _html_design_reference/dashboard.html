@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LectuNote AI - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-primary-hover: #0D47A1;
+            --color-primary-light: #E3F2FD;
+            --color-primary-dark: #0D47A1;
+            --color-text-main: #0F172A;
+            --color-text-secondary: #64748B;
+            --color-text-muted: #94A3B8;
+            --color-surface-white: #FFFFFF;
+            --color-background-main: #F8FAFC;
+            --color-border-default: #E2E8F0;
+            --color-teal: #007887;
+            --color-teal-light: #ECFEFF;
+            --color-success: #15803D;
+            --color-success-light: #F0FDF4;
+            --color-warning-text: #92400E;
+            --color-warning-bg: #FFFBEB;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --sidebar-width: 256px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-background-main);
+            color: var(--color-text-main);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        .app-layout {
+            display: flex;
+            width: 100%;
+            min-height: 100dvh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background: var(--color-surface-white);
+            border-right: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px 20px;
+            min-height: 100dvh;
+            position: sticky;
+            top: 0;
+            height: 100dvh;
+            overflow-y: auto;
+            z-index: 50;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--color-text-main);
+        }
+
+        .brand-text span {
+            color: var(--color-teal);
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover {
+            background-color: var(--color-background-main);
+            color: var(--color-primary);
+        }
+
+        .nav-item.active a {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary);
+        }
+
+        .nav-item.active svg {
+            stroke: var(--color-primary);
+        }
+
+        .sidebar-footer {
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+        }
+
+        .user-role {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+        }
+
+        .tagline {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 40;
+        }
+
+        /* Main Workspace */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-y: auto;
+        }
+
+        /* Top Header */
+        .top-header {
+            height: 80px;
+            background: var(--color-surface-white);
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .semester-pill {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .notification-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            transition: background 0.2s;
+        }
+
+        .notification-btn:hover {
+            background: var(--color-background-main);
+        }
+
+        /* Content Container */
+        .content-area {
+            padding: 32px 40px 60px 40px;
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Greeting & Hero Row */
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hero-tag {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .hero-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .hero-text {
+            flex: 1;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .hero-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            line-height: 1.25;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Global Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            padding: 0 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: #FFFFFF;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-surface-white);
+            color: var(--color-primary);
+            border: 1px solid var(--color-border-default);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-background-main);
+            border-color: #CBD5E1;
+        }
+
+        /* Stats Row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: var(--color-primary-light);
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Main Grid: Left Stream + Right Sidebar Widgets */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .stream-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Hero Banner "Lanjutkan dari terakhir" */
+        .continue-card {
+            background: var(--color-primary);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.2);
+        }
+
+        .continue-badge {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .continue-title {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .continue-desc {
+            font-size: 15px;
+            opacity: 0.95;
+            line-height: 1.5;
+        }
+
+        .continue-progress {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .continue-btn {
+            background: #FFFFFF;
+            color: var(--color-primary);
+            border: 1px solid var(--color-border-default);
+            width: fit-content;
+            margin-top: 6px;
+        }
+
+        .continue-btn:hover {
+            background: #F8FAFC;
+        }
+
+        /* Section Headings */
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .section-action {
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: background 0.2s;
+        }
+
+        .section-action:hover {
+            background: var(--color-primary-light);
+        }
+
+        /* Subject Cards Grid */
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .material-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .material-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .material-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .status-indicator {
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-indicator.unfinished {
+            color: var(--color-warning-text);
+        }
+
+        .status-indicator.completed {
+            color: var(--color-success);
+        }
+
+        .status-indicator.not-started {
+            color: var(--color-text-secondary);
+        }
+
+        .material-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .material-topic {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+        }
+
+        .material-meta {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Right Sidebar Widgets */
+        .widget-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .widget-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .widget-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--color-text-main);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .widget-stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .progress-track {
+            height: 8px;
+            background: var(--color-border-default);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--color-primary);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+
+        .widget-desc {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+        }
+
+        .widget-badge {
+            background: var(--color-success-light);
+            color: var(--color-success);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .widget-footer-meta {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .promo-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .promo-title {
+            color: var(--color-primary-dark);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .promo-desc {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .content-area {
+                padding: 24px 24px 48px 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .top-header {
+                padding: 0 16px;
+                height: 64px;
+            }
+
+            .content-area {
+                padding: 20px 16px 40px 16px;
+                gap: 20px;
+            }
+
+            .hero-title {
+                font-size: 26px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .materials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .continue-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation Drawer Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <a href="dashboard.html" class="brand-logo">
+                    <div class="brand-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+                            <path d="M4 5.5v15M8 7h7M8 10h5"/>
+                            <path d="m14 13 5-5 2 2-5 5-3 1z"/>
+                        </svg>
+                    </div>
+                    <div class="brand-text">LectuNote <span>AI</span></div>
+                </a>
+
+                <div class="nav-section-title">RUANG BELAJAR</div>
+
+                <ul class="nav-menu">
+                    <li class="nav-item active">
+                        <a href="dashboard.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="unggah-materi.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span>Unggah Materi</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pustaka-materi.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                <line x1="10" y1="6" x2="16" y2="6"/>
+                                <line x1="10" y1="10" x2="16" y2="10"/>
+                            </svg>
+                            <span>Pustaka Materi</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pengaturan&pofile.html">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                            </svg>
+                            <span>Pengaturan</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-name">Aditya Ramadhan</div>
+                <div class="user-role">Mahasiswa teknik</div>
+                <div class="tagline">Ringkas. Pahami. Uji dirimu.</div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-wrapper">
+            <!-- Top App Bar -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle" aria-label="Buka menu navigasi">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="breadcrumb">Ruang belajar / Dashboard</div>
+                </div>
+                <div class="header-right">
+                    <span class="semester-pill">Semester ganjil · 2026/2027</span>
+                    <button class="notification-btn" aria-label="Notifikasi">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="content-area">
+                <!-- Hero / Greeting -->
+                <section class="hero-section">
+                    <div class="hero-tag">Halo, Aditya. Siap memahami hal baru?</div>
+                    <div class="hero-body">
+                        <div class="hero-text">
+                            <h1 class="hero-title">Belajar Lebih Cerdas.</h1>
+                            <p class="hero-subtitle">Ubah materi kuliah menjadi latihan belajar yang lebih terarah.</p>
+                        </div>
+                        <a href="unggah-materi.html" class="btn btn-primary">+ Buat Study Kit Baru</a>
+                    </div>
+                </section>
+
+                <!-- Stats 3-Cards Row -->
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                <line x1="9" y1="7" x2="15" y2="7"/>
+                                <line x1="9" y1="11" x2="15" y2="11"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number">12</div>
+                            <div class="stat-label">Study Kits</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="m8 12 2.5 2.5L16.5 9"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number">8</div>
+                            <div class="stat-label">Kuis selesai</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19V5M4 19h16M8 15l4-4 3 2 5-6"/>
+                                <path d="M17 7h3v3"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number">80</div>
+                            <div class="stat-label">Rata-rata skor PG</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Main Layout Grid: Stream vs Sidebar -->
+                <div class="dashboard-grid">
+                    <!-- Left Stream -->
+                    <div class="stream-column">
+                        <!-- Featured Continue Learning Banner -->
+                        <div class="continue-card">
+                            <div class="continue-badge">LANJUTKAN DARI TERAKHIR</div>
+                            <h2 class="continue-title">Jaringan Komputer</h2>
+                            <p class="continue-desc">Model OSI & TCP/IP — lanjutkan kuis yang belum selesai.</p>
+                            <div class="continue-progress">2 dari 5 PG terisi · Esai belum dimulai</div>
+                            <div>
+                                <a href="kuis-soal.html" class="btn continue-btn">Lanjutkan Kuis →</a>
+                            </div>
+                        </div>
+
+                        <!-- Recent Materials Section -->
+                        <div class="section-header-row">
+                            <h2 class="section-title">Materi terbaru</h2>
+                            <a href="pustaka-materi.html" class="section-action">Lihat semua</a>
+                        </div>
+
+                        <!-- 2x2 Materials Grid -->
+                        <div class="materials-grid">
+                            <!-- Card 1 -->
+                            <div class="material-card">
+                                <div class="material-info">
+                                    <div class="status-indicator unfinished">△ Kuis belum selesai</div>
+                                    <h3 class="material-title">Jaringan Komputer</h3>
+                                    <div class="material-topic">Model OSI & TCP/IP</div>
+                                    <div class="material-meta">24 halaman · 12 kartu · 5 PG + 2 esai</div>
+                                </div>
+                                <a href="ringkasan.html" class="btn btn-secondary">Lanjutkan belajar</a>
+                            </div>
+
+                            <!-- Card 2 -->
+                            <div class="material-card">
+                                <div class="material-info">
+                                    <div class="status-indicator completed">✓ Kuis selesai</div>
+                                    <h3 class="material-title">Pemrograman Web</h3>
+                                    <div class="material-topic">HTTP, HTML & CSS</div>
+                                    <div class="material-meta">18 halaman · 12 kartu · 5 PG + 2 esai</div>
+                                </div>
+                                <a href="ringkasan.html" class="btn btn-secondary">Buka Study Kit</a>
+                            </div>
+
+                            <!-- Card 3 -->
+                            <div class="material-card">
+                                <div class="material-info">
+                                    <div class="status-indicator not-started">○ Belum dikerjakan</div>
+                                    <h3 class="material-title">Sistem Basis Data</h3>
+                                    <div class="material-topic">Relasi & normalisasi</div>
+                                    <div class="material-meta">32 halaman · 12 kartu · 5 PG + 2 esai</div>
+                                </div>
+                                <a href="ringkasan.html" class="btn btn-secondary">Buka Study Kit</a>
+                            </div>
+
+                            <!-- Card 4 -->
+                            <div class="material-card">
+                                <div class="material-info">
+                                    <div class="status-indicator completed">✓ Kuis selesai</div>
+                                    <h3 class="material-title">Sistem Operasi</h3>
+                                    <div class="material-topic">Proses & penjadwalan</div>
+                                    <div class="material-meta">20 halaman · 12 kartu · 5 PG + 2 esai</div>
+                                </div>
+                                <a href="ringkasan.html" class="btn btn-secondary">Buka Study Kit</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar Widgets -->
+                    <div class="widget-column">
+                        <!-- Target Minggu Ini -->
+                        <div class="widget-card">
+                            <div class="widget-header">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--color-primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <circle cx="12" cy="12" r="5"/>
+                                    <circle cx="12" cy="12" r="1"/>
+                                </svg>
+                                <span>Target minggu ini</span>
+                            </div>
+                            <div class="widget-stat-number">3 / 4 sesi</div>
+                            <div class="progress-track">
+                                <div class="progress-bar-fill" style="width: 75%;"></div>
+                            </div>
+                            <p class="widget-desc">Satu sesi lagi untuk mencapai target belajarmu.</p>
+                            <div class="widget-badge">✓ Teruskan ritmemu</div>
+                            <div class="widget-footer-meta">Senin–Minggu · Target pribadi</div>
+                        </div>
+
+                        <!-- Ada Materi Baru? -->
+                        <div class="widget-card">
+                            <div style="color: var(--color-primary);">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 16V4m0 0L8 8m4-4 4 4"/>
+                                    <path d="M5 14v6h14v-6"/>
+                                </svg>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--color-text-main);">Ada materi baru?</h3>
+                            <p class="widget-desc">Mulai dari PDF, tambahkan catatan, lalu susun latihanmu.</p>
+                            <a href="unggah-materi.html" class="btn btn-secondary">Unggah Materi</a>
+                        </div>
+
+                        <!-- Info/Promo Card -->
+                        <div class="promo-card">
+                            <div class="promo-title">Ubah Slide & Catatan Kuliah Jadi Simulasi Ujian Interaktif dalam Hitungan Detik.</div>
+                            <div class="promo-desc">Belajar mandiri, tetap berpikir kritis.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Responsive Navigation Script -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+
+        function toggleSidebar() {
+            const isOpen = sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('active', isOpen);
+            menuToggle.setAttribute('aria-expanded', isOpen);
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            menuToggle.setAttribute('aria-expanded', 'false');
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeSidebar();
+        });
+    </script>
+</body>
+</html>

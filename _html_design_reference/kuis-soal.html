@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LectuNote AI - Kuis Jaringan Komputer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-primary-hover: #0D47A1;
+            --color-primary-light: #E3F2FD;
+            --color-text-main: #0F172A;
+            --color-text-secondary: #64748B;
+            --color-text-muted: #94A3B8;
+            --color-surface-white: #FFFFFF;
+            --color-background-main: #F8FAFC;
+            --color-border-default: #E2E8F0;
+            --color-teal: #007887;
+            --color-teal-light: #ECFEFF;
+            --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-background-main);
+            color: var(--color-text-main);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header in Focus Mode */
+        .quiz-top-bar {
+            height: 72px;
+            background: var(--color-surface-white);
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(21, 101, 192, 0.25);
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-title-main {
+            color: var(--color-text-main);
+        }
+
+        .brand-title-ai {
+            color: var(--color-teal);
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .focus-mode-badge {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .focus-mode-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10B981;
+        }
+
+        .close-quiz-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--color-border-default);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .close-quiz-btn:hover {
+            background: #FEE2E2;
+            color: #DC2626;
+            border-color: #FECACA;
+        }
+
+        /* Page Main Container */
+        .content-container {
+            padding: 32px 40px 60px;
+            max-width: 1240px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Back Link & Header Title */
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            width: fit-content;
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateX(-3px);
+            color: var(--color-primary-hover);
+        }
+
+        .page-title {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+        }
+
+        .page-subtitle {
+            font-size: clamp(14px, 2vw, 16px);
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Two Column Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .quiz-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .sidebar-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        /* Main Quiz Card */
+        .quiz-card {
+            background: var(--color-surface-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border-default);
+            padding: 32px;
+            box-shadow: var(--color-shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .quiz-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .question-type-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background: var(--color-primary-light);
+            border-radius: var(--radius-sm);
+            color: var(--color-primary-hover);
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
+        .question-number-badge {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: var(--color-border-default);
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 60%;
+            background: var(--color-primary);
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .question-title {
+            font-size: clamp(20px, 3.5vw, 28px);
+            font-weight: 700;
+            color: var(--color-text-main);
+            line-height: 1.35;
+            letter-spacing: -0.01em;
+        }
+
+        .question-instruction {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        /* Options List */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-height: 64px;
+            padding: 16px 20px;
+            background: var(--color-surface-white);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border-default);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .option-item:hover {
+            border-color: #94A3B8;
+            background: #F8FAFC;
+        }
+
+        .option-item.selected {
+            background: var(--color-primary-light);
+            border: 2px solid var(--color-primary);
+            padding: 15px 19px; /* Compensate 2px border */
+        }
+
+        .option-letter {
+            width: 28px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-item.selected .option-letter {
+            color: var(--color-primary);
+        }
+
+        .option-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .option-text {
+            font-size: 15px;
+            color: var(--color-text-main);
+            line-height: 1.5;
+        }
+
+        .option-status-tag {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-primary);
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .option-item.selected .option-status-tag {
+            display: inline-flex;
+        }
+
+        /* Card Bottom Actions */
+        .quiz-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 12px;
+        }
+
+        .btn {
+            height: 48px;
+            padding: 0 22px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--color-primary);
+            border: 1px solid var(--color-border-default);
+        }
+
+        .btn-secondary:hover {
+            border-color: #CBD5E1;
+            background: #F8FAFC;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 6px rgba(21, 101, 192, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.35);
+        }
+
+        /* Notice text below card */
+        .quiz-footnote {
+            font-size: 13.5px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+            padding: 0 4px;
+        }
+
+        /* Sidebar Cards */
+        .card {
+            background: var(--color-surface-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border-default);
+            padding: 24px;
+            box-shadow: var(--color-shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .card-subtext {
+            font-size: 12.5px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        /* Number Grid Navigation */
+        .nav-numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .nav-num-btn {
+            height: 44px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border-default);
+            background: var(--color-background-main);
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-num-btn:hover {
+            border-color: var(--color-primary);
+            background: white;
+        }
+
+        /* State: Answered (light blue background) */
+        .nav-num-btn.answered {
+            background: var(--color-primary-light);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        /* State: Active Current Question (solid primary blue) */
+        .nav-num-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+            box-shadow: 0 2px 6px rgba(21, 101, 192, 0.3);
+        }
+
+        /* Essay Section */
+        .essay-buttons-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .essay-nav-btn {
+            flex: 1;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border-default);
+            background: var(--color-background-main);
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .essay-nav-btn:hover {
+            border-color: #94A3B8;
+            color: var(--color-text-main);
+            background: white;
+        }
+
+        .essay-nav-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+
+        .nav-legend-text {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            line-height: 1.55;
+            margin-top: 4px;
+        }
+
+        /* Integrity Card */
+        .integrity-icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--color-primary-light);
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .integrity-body {
+            font-size: 13.5px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .integrity-body strong {
+            color: var(--color-text-main);
+        }
+
+        .integrity-footnote {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            line-height: 1.5;
+        }
+
+        /* ------------------------------------------- */
+        /* RESPONSIVE BREAKPOINTS (Mobile & Tablet)    */
+        /* ------------------------------------------- */
+
+        /* Tablet (1024px and down) */
+        @media (max-width: 1024px) {
+            .quiz-top-bar {
+                padding: 0 24px;
+            }
+
+            .content-container {
+                padding: 24px 24px 48px;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .sidebar-column {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        /* Mobile (768px and down) */
+        @media (max-width: 768px) {
+            .quiz-top-bar {
+                height: 60px;
+                padding: 0 16px;
+            }
+
+            .focus-mode-badge span {
+                display: none; /* Hide topic text on small screens, keep badge or dot */
+            }
+
+            .content-container {
+                padding: 20px 16px 40px;
+                gap: 18px;
+            }
+
+            .quiz-card {
+                padding: 20px 16px;
+                border-radius: var(--radius-md);
+                gap: 16px;
+            }
+
+            .question-title {
+                font-size: 20px;
+                line-height: 1.35;
+            }
+
+            .option-item {
+                padding: 14px 16px;
+                min-height: 56px;
+                gap: 12px;
+            }
+
+            .option-item.selected {
+                padding: 13px 15px;
+            }
+
+            .option-text {
+                font-size: 14px;
+            }
+
+            .option-letter {
+                font-size: 15px;
+                width: 24px;
+            }
+
+            .quiz-actions-row {
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+
+            .quiz-actions-row .btn {
+                width: 100%;
+            }
+
+            .sidebar-column {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 20px 16px;
+                border-radius: var(--radius-md);
+            }
+
+            .nav-numbers-grid {
+                gap: 6px;
+            }
+
+            .nav-num-btn {
+                height: 42px;
+                font-size: 13.5px;
+            }
+        }
+
+        /* Small Phones (< 390px) */
+        @media (max-width: 390px) {
+            .content-container {
+                padding: 16px 12px 36px;
+            }
+
+            .quiz-card,
+            .card {
+                padding: 16px 12px;
+            }
+
+            .option-item {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .brand-title {
+                font-size: 18px;
+            }
+
+            .brand-icon {
+                width: 34px;
+                height: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Quiz Header (Focus Mode) -->
+    <header class="quiz-top-bar">
+        <a href="dashboard.html" class="brand-logo-wrap" title="Beranda LectuNote AI">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                    <path d="M6 6h10"></path>
+                    <path d="M6 10h10"></path>
+                    <path d="m14 16 2 2 4-4"></path>
+                </svg>
+            </div>
+            <div class="brand-title">
+                <span class="brand-title-main">LectuNote </span><span class="brand-title-ai">AI</span>
+            </div>
+        </a>
+
+        <div class="top-bar-right">
+            <div class="focus-mode-badge">
+                <span class="focus-mode-dot"></span>
+                <span>Mode fokus • Jaringan Komputer</span>
+            </div>
+            <button class="close-quiz-btn" onclick="confirmExit()" aria-label="Keluar dari Kuis" title="Keluar dari Kuis">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M18 6 6 18M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="content-container">
+        <!-- Back Link & Title Header -->
+        <section class="page-header">
+            <a href="ringkasan.html" class="back-link">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Kembali ke Study Kit</span>
+            </a>
+            <h1 class="page-title">Kuis Jaringan Komputer</h1>
+            <p class="page-subtitle">Model OSI & TCP/IP · 5 pilihan ganda + 2 esai</p>
+        </section>
+
+        <!-- Two Column Main Grid -->
+        <div class="main-grid">
+            <!-- Left: Quiz Question Area -->
+            <div class="quiz-column">
+                <section class="quiz-card" aria-labelledby="questionHeading">
+                    <!-- Question Meta & Step -->
+                    <div class="quiz-meta-row">
+                        <div class="question-type-pill">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"></circle>
+                            </svg>
+                            <span>Pilihan ganda</span>
+                        </div>
+                        <div class="question-number-badge" id="questionCounter">Soal 3 dari 5</div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-track" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-fill" id="progressFill" style="width: 60%;"></div>
+                    </div>
+
+                    <!-- Question Content -->
+                    <h2 class="question-title" id="questionHeading">Apa peran utama HTTP dalam komunikasi jaringan?</h2>
+                    <p class="question-instruction">Pilih satu jawaban yang paling tepat.</p>
+
+                    <!-- Multiple Choice Options -->
+                    <div class="options-list" role="radiogroup" aria-label="Pilihan Jawaban">
+                        <!-- Option A -->
+                        <div class="option-item" onclick="selectOption(this)" role="radio" aria-checked="false" tabindex="0">
+                            <span class="option-letter">A</span>
+                            <div class="option-content">
+                                <span class="option-text">Menentukan alamat MAC perangkat.</span>
+                                <span class="option-status-tag">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    Dipilih
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Option B -->
+                        <div class="option-item" onclick="selectOption(this)" role="radio" aria-checked="false" tabindex="0">
+                            <span class="option-letter">B</span>
+                            <div class="option-content">
+                                <span class="option-text">Memilih rute paket IP di router.</span>
+                                <span class="option-status-tag">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    Dipilih
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Option C (Active / Selected) -->
+                        <div class="option-item selected" onclick="selectOption(this)" role="radio" aria-checked="true" tabindex="0">
+                            <span class="option-letter">C</span>
+                            <div class="option-content">
+                                <span class="option-text">Mengatur pertukaran permintaan dan respons sumber daya web pada layer aplikasi.</span>
+                                <span class="option-status-tag">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    Dipilih
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Option D -->
+                        <div class="option-item" onclick="selectOption(this)" role="radio" aria-checked="false" tabindex="0">
+                            <span class="option-letter">D</span>
+                            <div class="option-content">
+                                <span class="option-text">Mengubah sinyal digital menjadi gelombang radio.</span>
+                                <span class="option-status-tag">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    Dipilih
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Nav Buttons -->
+                    <div class="quiz-actions-row">
+                        <button type="button" class="btn btn-secondary" onclick="navigateQuestion(-1)">Sebelumnya</button>
+                        <button type="button" class="btn btn-primary" onclick="navigateQuestion(1)">
+                            <span>Berikutnya</span>
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </section>
+
+                <p class="quiz-footnote">Jawaban benar dan pembahasan baru tersedia setelah seluruh jawaban dikirim.</p>
+            </div>
+
+            <!-- Right: Sidebar Cards -->
+            <aside class="sidebar-column" aria-label="Navigasi dan Ketentuan Kuis">
+                <!-- Navigation Numbers Card -->
+                <div class="card" aria-labelledby="headingNavigasi">
+                    <h3 id="headingNavigasi" class="card-header-title">Navigasi soal</h3>
+                    <div class="card-subtext">Pilihan ganda · 5 soal</div>
+
+                    <!-- Number Grid (1-5) -->
+                    <div class="nav-numbers-grid" role="group" aria-label="Daftar nomor soal pilihan ganda">
+                        <button type="button" class="nav-num-btn answered" onclick="goToQuestion(1)">1</button>
+                        <button type="button" class="nav-num-btn answered" onclick="goToQuestion(2)">2</button>
+                        <button type="button" class="nav-num-btn active" onclick="goToQuestion(3)">3</button>
+                        <button type="button" class="nav-num-btn" onclick="goToQuestion(4)">4</button>
+                        <button type="button" class="nav-num-btn" onclick="goToQuestion(5)">5</button>
+                    </div>
+
+                    <div class="card-subtext">Esai · 2 soal</div>
+
+                    <!-- Essay Buttons -->
+                    <div class="essay-buttons-row" role="group" aria-label="Daftar soal esai">
+                        <button type="button" class="essay-nav-btn" onclick="goToEssay(1)">Esai 1</button>
+                        <button type="button" class="essay-nav-btn" onclick="goToEssay(2)">Esai 2</button>
+                    </div>
+
+                    <p class="nav-legend-text">
+                        <strong>Biru terisi:</strong> sudah dijawab. <br>
+                        <strong>Biru penuh:</strong> soal aktif. <br>
+                        Urutan bebas sebelum dikirim.
+                    </p>
+                </div>
+
+                <!-- Academic Integrity Card -->
+                <div class="card">
+                    <div class="integrity-icon-box">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                            <path d="m9 14 2 2 4-4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="card-header-title">Belajar dengan jujur</h3>
+                    <p class="integrity-body">
+                        <strong>5 PG × 20 poin = 100 poin.</strong> Dua esai ditinjau AI secara kualitatif dan tidak masuk skor PG.
+                    </p>
+                    <p class="integrity-footnote">Tidak ada jawaban benar yang ditampilkan selama pengerjaan.</p>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Quiz Interaction Script -->
+    <script>
+        let currentQuestion = 3;
+        const totalQuestions = 5;
+
+        // Question mock data for seamless demo
+        const questionsData = {
+            1: {
+                title: "Layer manakah pada model OSI yang bertanggung jawab untuk routing paket end-to-end?",
+                options: [
+                    "Data Link Layer",
+                    "Network Layer",
+                    "Transport Layer",
+                    "Physical Layer"
+                ],
+                selected: 1 // Option B
+            },
+            2: {
+                title: "Protokol transport layer yang bersifat connection-oriented dan menjamin pengiriman paket adalah:",
+                options: [
+                    "UDP (User Datagram Protocol)",
+                    "IP (Internet Protocol)",
+                    "TCP (Transmission Control Protocol)",
+                    "ICMP (Internet Control Message Protocol)"
+                ],
+                selected: 2 // Option C
+            },
+            3: {
+                title: "Apa peran utama HTTP dalam komunikasi jaringan?",
+                options: [
+                    "Menentukan alamat MAC perangkat.",
+                    "Memilih rute paket IP di router.",
+                    "Mengatur pertukaran permintaan dan respons sumber daya web pada layer aplikasi.",
+                    "Mengubah sinyal digital menjadi gelombang radio."
+                ],
+                selected: 2 // Option C
+            },
+            4: {
+                title: "Berapa jumlah host yang dapat dialokasikan pada subnet dengan prefix /24?",
+                options: [
+                    "256 host",
+                    "254 host",
+                    "128 host",
+                    "512 host"
+                ],
+                selected: null
+            },
+            5: {
+                title: "Perangkat switch beroperasi utamanya pada layer OSI:",
+                options: [
+                    "Layer 1 (Physical)",
+                    "Layer 2 (Data Link)",
+                    "Layer 3 (Network)",
+                    "Layer 4 (Transport)"
+                ],
+                selected: null
+            }
+        };
+
+        // Select Option Handler
+        function selectOption(element) {
+            const list = element.parentElement;
+            const items = list.querySelectorAll('.option-item');
+            
+            items.forEach(item => {
+                item.classList.remove('selected');
+                item.setAttribute('aria-checked', 'false');
+            });
+
+            element.classList.add('selected');
+            element.setAttribute('aria-checked', 'true');
+
+            // Update answered state in nav button
+            const navBtn = document.querySelectorAll('.nav-num-btn')[currentQuestion - 1];
+            if (navBtn) navBtn.classList.add('answered');
+        }
+
+        // Navigate between questions
+        function navigateQuestion(direction) {
+            let nextQ = currentQuestion + direction;
+            if (nextQ >= 1 && nextQ <= totalQuestions) {
+                goToQuestion(nextQ);
+            } else if (nextQ > totalQuestions) {
+                goToEssay(1);
+            }
+        }
+
+        // Go to specific question number
+        function goToQuestion(num) {
+            currentQuestion = num;
+            const q = questionsData[num];
+            if (!q) return;
+
+            // Update counter and progress bar
+            document.getElementById('questionCounter').textContent = `Soal ${num} dari ${totalQuestions}`;
+            document.getElementById('progressFill').style.width = `${(num / totalQuestions) * 100}%`;
+            document.getElementById('questionHeading').textContent = q.title;
+
+            // Update options
+            const options = document.querySelectorAll('.option-item');
+            options.forEach((opt, idx) => {
+                opt.querySelector('.option-text').textContent = q.options[idx];
+                if (q.selected === idx) {
+                    opt.classList.add('selected');
+                    opt.setAttribute('aria-checked', 'true');
+                } else {
+                    opt.classList.remove('selected');
+                    opt.setAttribute('aria-checked', 'false');
+                }
+            });
+
+            // Update nav buttons active state
+            document.querySelectorAll('.nav-num-btn').forEach((btn, idx) => {
+                if (idx + 1 === num) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            document.querySelectorAll('.essay-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Smooth scroll up on mobile if needed
+            if (window.innerWidth < 768) {
+                document.querySelector('.quiz-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // Go to essay question
+        function goToEssay(num) {
+            window.location.href = num === 2 ? 'kuis-essai.html#essay2' : 'kuis-essai.html';
+        }
+
+        // Confirm Exit
+        function confirmExit() {
+            if (confirm('Apakah kamu yakin ingin keluar dari kuis? Progres jawabanmu saat ini telah tersimpan secara otomatis.')) {
+                window.location.href = 'ringkasan.html';
+            }
+        }
+    </script>
+</body>
+</html>

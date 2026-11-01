@@ -1,26 +1,73 @@
 @import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #1565C0;
+  --color-primary-hover: #0D47A1;
+  --color-primary-dark: #0D47A1;
+  --color-primary-light: #E3F2FD;
+  --color-teal: #007887;
+  --color-teal-light: #ECFEFF;
+  --color-surface-white: #FFFFFF;
+  --color-background-main: #F8FAFC;
+  --color-border-default: #E2E8F0;
+  --color-text-main: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-success: #15803D;
+  --color-success-light: #F0FDF4;
+  --color-warning-text: #92400E;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-border: #FDE68A;
+  --color-danger: #DC2626;
+  --color-danger-light: #FEF2F2;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  --font-sans: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: #1565C0;
+  --color-primary-hover: #0D47A1;
+  --color-primary-dark: #0D47A1;
+  --color-primary-light: #E3F2FD;
+
+  --color-teal: #007887;
+  --color-teal-light: #ECFEFF;
+
+  --color-surface: #FFFFFF;
+  --color-surface-white: #FFFFFF;
+  --color-surface-main: #F8FAFC;
+  --color-surface-border: #E2E8F0;
+
+  --color-background: #F8FAFC;
+  --color-border: #E2E8F0;
+
+  --color-text-main: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+
+  --color-status-success: #15803D;
+  --color-status-warning: #92400E;
+  --color-status-danger: #DC2626;
+
+  --color-success: #15803D;
+  --color-success-light: #F0FDF4;
+
+  --color-warning-text: #92400E;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-border: #FDE68A;
+
+  --color-danger: #DC2626;
+  --color-danger-light: #FEF2F2;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background-main);
+  color: var(--color-text-main);
+  font-family: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100dvh;
 }

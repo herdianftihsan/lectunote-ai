@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LectuNote AI - Buat Study Kit Baru</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-primary-hover: #0D47A1;
+            --color-primary-light: #E3F2FD;
+            --color-text-main: #0F172A;
+            --color-text-secondary: #64748B;
+            --color-text-muted: #94A3B8;
+            --color-surface-white: #FFFFFF;
+            --color-background-main: #F8FAFC;
+            --color-border-default: #E2E8F0;
+            --color-teal: #007887;
+            --color-teal-light: #ECFEFF;
+            --color-warning-text: #92400E;
+            --color-warning-bg: #FFFBEB;
+            --color-success: #15803D;
+            --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-background-main);
+            color: var(--color-text-main);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        /* Layout Structure */
+        .app-layout {
+            display: flex;
+            width: 100%;
+            min-height: 100dvh;
+            position: relative;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background: var(--color-surface-white);
+            border-right: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px 20px;
+            min-height: 100dvh;
+            position: sticky;
+            top: 0;
+            height: 100dvh;
+            overflow-y: auto;
+            z-index: 50;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(21, 101, 192, 0.25);
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-title-main {
+            color: var(--color-text-main);
+        }
+
+        .brand-title-ai {
+            color: var(--color-teal);
+        }
+
+        .sidebar-close-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .sidebar-close-btn:hover {
+            background: var(--color-primary-light);
+            color: var(--color-primary);
+        }
+
+        .sidebar-section-title {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            list-style: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background-color: #F1F5F9;
+            color: var(--color-text-main);
+        }
+
+        .nav-item.active {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary);
+        }
+
+        .nav-item svg {
+            flex-shrink: 0;
+        }
+
+        /* Sidebar Profile Footer */
+        .sidebar-footer {
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .profile-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            line-height: 1.4;
+        }
+
+        .profile-role {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            font-weight: 400;
+        }
+
+        .profile-quote {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            line-height: 1.5;
+            margin-top: 4px;
+        }
+
+        /* Backdrop overlay for mobile drawer */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 40;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Main Content Area */
+        .main-wrapper {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            height: 72px;
+            background: var(--color-surface-white);
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--color-border-default);
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mobile-menu-btn:hover {
+            background: var(--color-background-main);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb span {
+            color: var(--color-text-main);
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .semester-badge {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .notification-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .notification-btn:hover {
+            background: var(--color-background-main);
+            color: var(--color-text-main);
+            border-color: var(--color-border-default);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 9px;
+            right: 9px;
+            width: 7px;
+            height: 7px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            border: 1.5px solid white;
+        }
+
+        /* Page Content */
+        .content-container {
+            padding: 32px 40px 60px;
+            max-width: 1360px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stepper-text {
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .page-title {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+        }
+
+        .page-subtitle {
+            font-size: clamp(14px, 2vw, 16px);
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Two-Column Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .form-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            min-width: 0;
+        }
+
+        .info-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            min-width: 0;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--color-surface-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border-default);
+            padding: 24px;
+            box-shadow: var(--color-shadow-sm);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Upload Dropzone */
+        .upload-dropzone {
+            background: var(--color-primary-light);
+            border: 2px dashed #90CAF9;
+            border-radius: var(--radius-lg);
+            padding: 36px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .upload-dropzone:hover,
+        .upload-dropzone.drag-over {
+            border-color: var(--color-primary);
+            background: #DCEEFC;
+            transform: translateY(-1px);
+        }
+
+        .upload-icon-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primary);
+            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.12);
+            margin-bottom: 14px;
+        }
+
+        .upload-drop-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            margin-bottom: 4px;
+        }
+
+        .upload-drop-hint {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .btn-choose-file {
+            background: white;
+            color: var(--color-primary);
+            border: 1px solid var(--color-border-default);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            box-shadow: var(--color-shadow-sm);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-choose-file:hover {
+            border-color: var(--color-primary);
+            background: #F8FAFC;
+        }
+
+        /* File Preview Box */
+        .file-item-card {
+            margin-top: 16px;
+            background: #FFFFFF;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .file-item-card:hover {
+            border-color: #CBD5E1;
+        }
+
+        .file-info-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+            flex: 1 1 240px;
+        }
+
+        .file-type-badge {
+            width: 44px;
+            height: 48px;
+            background: #FEF2F2;
+            border: 1px solid #FEE2E2;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #DC2626;
+            font-weight: 700;
+            font-size: 11px;
+            flex-shrink: 0;
+            letter-spacing: 0.05em;
+        }
+
+        .file-meta-text {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-details {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-status-tag {
+            color: var(--color-success);
+            font-weight: 600;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .file-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-text-action {
+            background: transparent;
+            border: none;
+            color: var(--color-primary);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-text-action:hover {
+            background: var(--color-primary-light);
+        }
+
+        .btn-text-action.delete {
+            color: #DC2626;
+        }
+
+        .btn-text-action.delete:hover {
+            background: #FEF2F2;
+        }
+
+        /* Notes Card */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px 16px;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--color-text-main);
+            background: white;
+            resize: vertical;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
+        }
+
+        .input-caption {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        /* Banner Callouts */
+        .callout-banner {
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 13.5px;
+            line-height: 1.5;
+        }
+
+        .callout-banner.ai {
+            background: var(--color-teal-light);
+            color: var(--color-teal);
+            font-weight: 600;
+        }
+
+        .callout-banner.warning {
+            background: var(--color-warning-bg);
+            border: 1px solid #FEF3C7;
+            color: var(--color-warning-text);
+            font-weight: 500;
+        }
+
+        .callout-icon {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Form Bottom Buttons */
+        .form-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 4px;
+        }
+
+        .btn {
+            height: 48px;
+            padding: 0 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--color-primary);
+            border: 1px solid var(--color-border-default);
+        }
+
+        .btn-secondary:hover {
+            border-color: #CBD5E1;
+            background: #F8FAFC;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 6px rgba(21, 101, 192, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.35);
+        }
+
+        /* Right Column Info Cards */
+        .ai-features-card {
+            background: white;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: var(--color-shadow-sm);
+        }
+
+        .badge-ai {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--color-teal-light);
+            border-radius: var(--radius-sm);
+            color: var(--color-teal);
+            font-size: 12.5px;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .features-heading {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text-main);
+            letter-spacing: -0.01em;
+            line-height: 1.35;
+        }
+
+        .features-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .feature-icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--color-teal-light);
+            color: var(--color-teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .feature-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .feature-title {
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .feature-desc {
+            font-size: 12.5px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Tips Card */
+        .tips-card {
+            background: white;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: var(--color-shadow-sm);
+        }
+
+        .tips-heading {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
+
+        .tips-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tips-list li {
+            position: relative;
+            padding-left: 18px;
+            font-size: 13.5px;
+            color: var(--color-text-secondary);
+            line-height: 1.55;
+            font-weight: 500;
+        }
+
+        .tips-list li::before {
+            content: "•";
+            position: absolute;
+            left: 4px;
+            top: 0;
+            color: var(--color-primary);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* ------------------------------------------- */
+        /* RESPONSIVE BREAKPOINTS (Mobile & Tablet)    */
+        /* ------------------------------------------- */
+
+        /* Tablet & Intermediate (1024px and down) */
+        @media (max-width: 1024px) {
+            :root {
+                --sidebar-width: 280px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-backdrop.active {
+                display: block;
+                opacity: 1;
+            }
+
+            .sidebar-close-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .top-bar {
+                padding: 0 24px;
+            }
+
+            .content-container {
+                padding: 24px 24px 48px;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .info-column {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        /* Mobile Phones (< 768px) */
+        @media (max-width: 768px) {
+            .top-bar {
+                height: 60px;
+                padding: 0 16px;
+            }
+
+            .breadcrumb {
+                font-size: 13px;
+            }
+
+            .semester-badge {
+                display: none; /* Hide on small screens for clean minimal header */
+            }
+
+            .content-container {
+                padding: 20px 16px 40px;
+                gap: 20px;
+            }
+
+            .card {
+                padding: 18px 16px;
+                border-radius: var(--radius-md);
+            }
+
+            .card-title {
+                font-size: 18px;
+            }
+
+            .card-description {
+                font-size: 13px;
+                margin-bottom: 16px;
+            }
+
+            .upload-dropzone {
+                padding: 26px 14px;
+            }
+
+            .upload-icon-wrap {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 10px;
+            }
+
+            .upload-drop-title {
+                font-size: 15px;
+            }
+
+            .upload-drop-hint {
+                font-size: 12px;
+                margin-bottom: 14px;
+            }
+
+            .file-item-card {
+                padding: 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .file-actions-group {
+                justify-content: flex-end;
+                border-top: 1px dashed var(--color-border-default);
+                padding-top: 10px;
+            }
+
+            .info-column {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions-row {
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+
+            .form-actions-row .btn {
+                width: 100%;
+            }
+
+            .stepper-text {
+                font-size: 12px;
+                gap: 4px;
+            }
+
+            .callout-banner {
+                font-size: 12.5px;
+                padding: 12px 14px;
+            }
+        }
+
+        /* Extra Small Phones (< 400px) */
+        @media (max-width: 400px) {
+            .content-container {
+                padding: 16px 12px 36px;
+            }
+
+            .card {
+                padding: 16px 12px;
+            }
+
+            .file-info-group {
+                gap: 10px;
+            }
+
+            .file-name {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-layout">
+        <!-- Sidebar Backdrop (Mobile) -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebarNav" aria-label="Navigasi Utama">
+            <div class="sidebar-top">
+                <div class="brand-header">
+                    <a href="dashboard.html" class="brand-logo-wrap">
+                        <div class="brand-icon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                                <path d="M6 6h10"></path>
+                                <path d="M6 10h10"></path>
+                                <path d="m14 16 2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <div class="brand-title">
+                            <span class="brand-title-main">LectuNote </span><span class="brand-title-ai">AI</span>
+                        </div>
+                    </a>
+                    <button class="sidebar-close-btn" onclick="toggleSidebar(false)" aria-label="Tutup navigasi">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M18 6 6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="sidebar-section-title">RUANG BELAJAR</div>
+
+                <ul class="nav-list">
+                    <li>
+                        <a href="dashboard.html" class="nav-item">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="unggah-materi.html" class="nav-item active">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span>Unggah Materi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="pustaka-materi.html" class="nav-item">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                                <path d="M4 6h16"></path>
+                                <path d="M9 10v7"></path>
+                                <path d="M13 10v7"></path>
+                                <path d="M17 10v7"></path>
+                            </svg>
+                            <span>Pustaka Materi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="pengaturan&pofile.html" class="nav-item">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            <span>Pengaturan</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="profile-name">Aditya Ramadhan</div>
+                <div class="profile-role">Mahasiswa teknik</div>
+                <div class="profile-quote">Ringkas. Pahami. Uji dirimu.</div>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Top Navbar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar(true)" aria-label="Buka navigasi" id="menuToggleBtn">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="4" y1="6" x2="20" y2="6"></line>
+                            <line x1="4" y1="12" x2="20" y2="12"></line>
+                            <line x1="4" y1="18" x2="20" y2="18"></line>
+                        </svg>
+                    </button>
+                    <nav class="breadcrumb" aria-label="Breadcrumb">
+                        <span>Ruang belajar</span> / <span>Unggah Materi</span>
+                    </nav>
+                </div>
+                <div class="top-bar-right">
+                    <div class="semester-badge">Semester ganjil · 2026/2027</div>
+                    <button class="notification-btn" aria-label="Notifikasi">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span class="notification-dot"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Container -->
+            <main class="content-container">
+                <!-- Header Stepper & Title -->
+                <section class="page-header">
+                    <div class="stepper-text">
+                        <span>01 Unggah materi</span>
+                        <span>→</span>
+                        <span style="color: var(--color-text-secondary);">02 Proses AI</span>
+                        <span>→</span>
+                        <span style="color: var(--color-text-secondary);">03 Mulai belajar</span>
+                    </div>
+                    <h1 class="page-title">Buat Study Kit Baru.</h1>
+                    <p class="page-subtitle">Satukan slide dan catatan kuliahmu menjadi latihan yang lebih terarah.</p>
+                </section>
+
+                <!-- Two Column Form Grid -->
+                <div class="main-grid">
+                    <!-- Left Form Area -->
+                    <div class="form-column">
+                        <!-- Card: Upload PDF -->
+                        <section class="card" aria-labelledby="heading-upload">
+                            <h2 id="heading-upload" class="card-title">Unggah materi kuliah</h2>
+                            <p class="card-description">Gunakan PDF dengan teks yang dapat dibaca. Pastikan kamu berhak menggunakan materi ini.</p>
+
+                            <!-- Hidden Real File Input -->
+                            <input type="file" id="pdfFileInput" accept=".pdf,application/pdf" style="display: none;" onchange="handleFileSelected(event)">
+
+                            <!-- Drag & Drop Zone -->
+                            <div class="upload-dropzone" id="dropzone" onclick="triggerFileInput()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)">
+                                <div class="upload-icon-wrap">
+                                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                                        <path d="M12 12v9"></path>
+                                        <path d="m16 16-4-4-4 4"></path>
+                                    </svg>
+                                </div>
+                                <div class="upload-drop-title">Tarik dan lepas PDF di sini</div>
+                                <div class="upload-drop-hint">atau pilih slide kuliah dari perangkatmu</div>
+                                <button type="button" class="btn-choose-file" onclick="event.stopPropagation(); triggerFileInput()">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    Pilih Berkas
+                                </button>
+                            </div>
+
+                            <!-- Uploaded File Item Preview -->
+                            <div class="file-item-card" id="fileItemCard">
+                                <div class="file-info-group">
+                                    <div class="file-type-badge">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="9" y1="13" x2="15" y2="13"></line>
+                                            <line x1="9" y1="17" x2="15" y2="17"></line>
+                                        </svg>
+                                        <span>PDF</span>
+                                    </div>
+                                    <div class="file-meta-text">
+                                        <div class="file-name" id="fileNameDisplay">Jaringan_Komputer_Bab_03.pdf</div>
+                                        <div class="file-details">
+                                            <span id="fileSizeDisplay">2,4 MB · 24 halaman</span>
+                                        </div>
+                                        <div class="file-status-tag">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            <span>Terunggah</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="file-actions-group">
+                                    <button type="button" class="btn-text-action" onclick="triggerFileInput()">Ganti berkas</button>
+                                    <button type="button" class="btn-text-action delete" onclick="removeFile()">Hapus</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Card: Notes -->
+                        <section class="card" aria-labelledby="heading-notes">
+                            <div class="input-group">
+                                <label for="lectureNotes" id="heading-notes" class="input-label">Tambahkan Catatan Kuliah</label>
+                                <textarea id="lectureNotes" class="notes-textarea" rows="4" placeholder="Tuliskan catatan atau instruksi tambahan...">Fokus pada perbedaan model OSI dan TCP/IP, fungsi tiap layer, serta contoh penggunaan TCP dan UDP. Bahas juga perhitungan host pada subnet /24.</textarea>
+                                <span class="input-caption">Opsional · Tambahkan penekanan dosen atau topik yang ingin kamu pahami.</span>
+                            </div>
+
+                            <!-- AI Context Banner -->
+                            <div class="callout-banner ai">
+                                <svg class="callout-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"></path>
+                                </svg>
+                                <span>AI menggunakan PDF dan catatan ini sebagai konteks penyusunan materi.</span>
+                            </div>
+                        </section>
+
+                        <!-- Warning / Compliance Banner -->
+                        <div class="callout-banner warning">
+                            <svg class="callout-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <span>Hindari mengunggah data pribadi, jawaban ujian aktif, atau materi yang tidak boleh dibagikan. Tinjau kebijakan pengelolaan data sebelum menggunakan layanan.</span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="form-actions-row">
+                            <a href="dashboard.html" class="btn btn-secondary">Batal</a>
+                            <a href="pemrosesan-ai.html" class="btn btn-primary">Buat Study Kit</a>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Info Cards -->
+                    <aside class="info-column" aria-label="Informasi dan Tips">
+                        <!-- AI Features Card -->
+                        <div class="ai-features-card">
+                            <div class="badge-ai">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"></path>
+                                </svg>
+                                <span>Dibantu AI</span>
+                            </div>
+
+                            <h3 class="features-heading">Satu PDF. Tiga cara belajar.</h3>
+
+                            <div class="features-list">
+                                <div class="feature-item">
+                                    <div class="feature-icon-box">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="feature-text">
+                                        <div class="feature-title">Ringkasan terstruktur</div>
+                                        <div class="feature-desc">Poin inti dan rujukan halaman sumber.</div>
+                                    </div>
+                                </div>
+
+                                <div class="feature-item">
+                                    <div class="feature-icon-box">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                            <polyline points="2 17 12 22 22 17"></polyline>
+                                            <polyline points="2 12 12 17 22 12"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="feature-text">
+                                        <div class="feature-title">12 flashcards</div>
+                                        <div class="feature-desc">Ulangi istilah dan konsep penting.</div>
+                                    </div>
+                                </div>
+
+                                <div class="feature-item">
+                                    <div class="feature-icon-box">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="9 11 12 14 22 4"></polyline>
+                                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="feature-text">
+                                        <div class="feature-title">5 PG + 2 esai</div>
+                                        <div class="feature-desc">Skor PG, tinjauan, dan umpan balik esai.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tips Card -->
+                        <div class="tips-card">
+                            <h3 class="tips-heading">Agar hasil lebih relevan</h3>
+                            <ul class="tips-list">
+                                <li>Gunakan satu topik per Study Kit.</li>
+                                <li>Cek apakah teks PDF terbaca.</li>
+                                <li>Tambahkan konteks dari dosen.</li>
+                                <li>Selalu periksa hasil AI ke sumber.</li>
+                            </ul>
+                        </div>
+                    </aside>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Interactive Script -->
+    <script>
+        // Toggle Mobile Sidebar Drawer
+        function toggleSidebar(open) {
+            const sidebar = document.getElementById('sidebarNav');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const menuBtn = document.getElementById('menuToggleBtn');
+
+            if (open) {
+                sidebar.classList.add('open');
+                backdrop.classList.add('active');
+                menuBtn.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden'; // Lock background scroll on mobile
+            } else {
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('active');
+                menuBtn.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Close drawer on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') toggleSidebar(false);
+        });
+
+        // Trigger hidden file input
+        function triggerFileInput() {
+            document.getElementById('pdfFileInput').click();
+        }
+
+        // Handle file selection
+        function handleFileSelected(event) {
+            const file = event.target.files[0];
+            if (file) {
+                updateFileDisplay(file.name, (file.size / (1024 * 1024)).toFixed(1) + ' MB');
+            }
+        }
+
+        // Drag and drop handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('dropzone').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('dropzone').classList.remove('drag-over');
+        }
+
+        function handleFileDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('dropzone').classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                updateFileDisplay(file.name, (file.size / (1024 * 1024)).toFixed(1) + ' MB');
+            }
+        }
+
+        // Update file preview card
+        function updateFileDisplay(name, sizeStr) {
+            const card = document.getElementById('fileItemCard');
+            card.style.display = 'flex';
+            document.getElementById('fileNameDisplay').textContent = name;
+            document.getElementById('fileSizeDisplay').textContent = sizeStr + ' · Baru diunggah';
+        }
+
+        // Remove file
+        function removeFile() {
+            const card = document.getElementById('fileItemCard');
+            card.style.display = 'none';
+            document.getElementById('pdfFileInput').value = '';
+        }
+    </script>
+</body>
+</html>

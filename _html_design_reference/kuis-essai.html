@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LectuNote AI - Kuis Esai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-primary-hover: #0D47A1;
+            --color-primary-light: #E3F2FD;
+            --color-primary-dark: #0D47A1;
+            --color-text-main: #0F172A;
+            --color-text-secondary: #64748B;
+            --color-text-muted: #94A3B8;
+            --color-surface-white: #FFFFFF;
+            --color-background-main: #F8FAFC;
+            --color-border-default: #E2E8F0;
+            --color-teal: #007887;
+            --color-teal-light: #ECFEFF;
+            --color-success: #15803D;
+            --color-success-light: #F0FDF4;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-background-main);
+            color: var(--color-text-main);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Focus Mode Top Bar (No Sidebar) */
+        .focus-top-bar {
+            height: 80px;
+            background: var(--color-surface-white);
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(21, 101, 192, 0.2);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .brand-title-main {
+            color: var(--color-text-main);
+        }
+
+        .brand-title-ai {
+            color: var(--color-teal);
+        }
+
+        .focus-top-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .focus-badge-text {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            font-weight: 400;
+        }
+
+        .close-focus-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .close-focus-btn:hover {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        /* Content Container */
+        .content-container {
+            padding: 32px 40px 60px;
+            max-width: 1440px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex: 1;
+        }
+
+        /* Page Header */
+        .quiz-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quiz-step-label {
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+        }
+
+        .quiz-title {
+            color: var(--color-text-main);
+            font-size: 32px;
+            font-weight: 600;
+            line-height: 42px;
+            letter-spacing: -0.01em;
+        }
+
+        .quiz-subtitle {
+            color: var(--color-text-secondary);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 26px;
+        }
+
+        /* Notice Banner */
+        .notice-banner {
+            padding: 16px;
+            background: var(--color-teal-light);
+            border-radius: var(--radius-md);
+            color: var(--color-teal);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Two Columns Layout */
+        .two-columns-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Essay Question Card */
+        .essay-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .badge-draft {
+            padding: 5px 10px;
+            background: var(--color-background-main);
+            border-radius: var(--radius-sm);
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .essay-title {
+            color: var(--color-text-main);
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 32px;
+        }
+
+        .essay-prompt {
+            color: var(--color-text-main);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 26px;
+        }
+
+        .answer-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .answer-label {
+            color: var(--color-text-main);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+        }
+
+        .answer-textarea {
+            width: 100%;
+            min-height: 136px;
+            padding: 14px;
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            color: var(--color-text-main);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 22px;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .answer-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
+        }
+
+        .answer-hint {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 18px;
+        }
+
+        /* Bottom Action Buttons */
+        .action-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sec {
+            height: 48px;
+            padding: 12px 24px;
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-sec:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+        }
+
+        .btn-prim {
+            height: 48px;
+            padding: 12px 24px;
+            background: var(--color-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            color: var(--color-surface-white);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(21, 101, 192, 0.2);
+        }
+
+        .btn-prim:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .note-subtle {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 18px;
+        }
+
+        /* Right Column */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .side-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .side-card-title {
+            color: var(--color-text-main);
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 26px;
+        }
+
+        .nav-category-label {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 18px;
+        }
+
+        .pg-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .pg-btn {
+            height: 44px;
+            background: var(--color-primary-light);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--radius-sm);
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .pg-btn:hover {
+            background: #BBDEFB;
+        }
+
+        .essay-nav-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .essay-nav-btn {
+            height: 44px;
+            background: var(--color-primary-light);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--radius-sm);
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .essay-nav-btn:hover {
+            background: #BBDEFB;
+        }
+
+        .nav-helper-text {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 18px;
+        }
+
+        .checklist-item {
+            color: var(--color-text-main);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Alternative State / Dialog Preview */
+        .alternative-state-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+            max-width: 560px;
+        }
+
+        .alt-label {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+        }
+
+        .dialog-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .dialog-icon {
+            width: 28px;
+            height: 28px;
+            color: var(--color-primary);
+        }
+
+        .dialog-title {
+            color: var(--color-text-main);
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 32px;
+        }
+
+        .dialog-desc {
+            color: var(--color-text-main);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 26px;
+        }
+
+        .dialog-badge-complete {
+            padding: 16px;
+            background: var(--color-success-light);
+            border-radius: var(--radius-md);
+            color: var(--color-success);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dialog-subtext {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+        }
+
+        .dialog-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dialog-actions .btn-sec,
+        .dialog-actions .btn-prim {
+            flex: 1;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1080px) {
+            .two-columns-layout {
+                grid-template-columns: 1fr;
+            }
+            .right-column {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+            }
+            .alternative-state-section {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .focus-top-bar {
+                padding: 0 20px;
+                height: 68px;
+            }
+
+            .content-container {
+                padding: 24px 20px 40px;
+            }
+
+            .quiz-title {
+                font-size: 26px;
+                line-height: 36px;
+            }
+
+            .essay-title {
+                font-size: 20px;
+                line-height: 28px;
+            }
+
+            .right-column {
+                grid-template-columns: 1fr;
+            }
+
+            .dialog-actions {
+                flex-direction: column;
+            }
+
+            .dialog-actions .btn-sec,
+            .dialog-actions .btn-prim {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Focus Mode Top Header -->
+    <header class="focus-top-bar">
+        <a href="dashboard.html" class="brand-logo-wrap">
+            <div class="brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                    <path d="M6 6h10"></path>
+                    <path d="M6 10h10"></path>
+                    <path d="M6 14h6"></path>
+                </svg>
+            </div>
+            <div class="brand-title">
+                <span class="brand-title-main">LectuNote</span>
+                <span class="brand-title-ai">AI</span>
+            </div>
+        </a>
+
+        <div class="focus-top-right">
+            <div class="focus-badge-text">Moda fokus • Jaringan Komputer</div>
+            <a href="ringkasan.html" class="close-focus-btn" aria-label="Tutup moda fokus">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="content-container">
+        <!-- Title Block -->
+        <section class="quiz-header">
+            <div class="quiz-step-label">Esai 1–2 dari 2</div>
+            <h1 class="quiz-title">Jelaskan dengan pemahamanmu.</h1>
+            <p class="quiz-subtitle">Kuis Jaringan Komputer · Bagian esai</p>
+        </section>
+
+        <!-- Notice Banner -->
+        <div class="notice-banner">
+            <span>✧</span>
+            <span>Esai dinilai terpisah melalui umpan balik kualitatif AI. Jawaban esai tidak menambah atau mengurangi skor 5 pilihan ganda.</span>
+        </div>
+
+        <!-- Two Columns Layout -->
+        <div class="two-columns-layout">
+            <!-- Left Column: Essay Inputs -->
+            <div class="left-column">
+                <!-- Esai 1 Card -->
+                <div class="essay-card">
+                    <div class="badge-draft">
+                        <span>○</span>
+                        <span>Draf terisi</span>
+                    </div>
+                    <h2 class="essay-title">Esai 1 / TCP dan UDP</h2>
+                    <p class="essay-prompt">Bandingkan TCP dan UDP dari sisi keandalan, urutan data, dan overhead. Berikan satu contoh penggunaan yang tepat untuk masing-masing protokol beserta alasannya.</p>
+                    
+                    <div class="answer-group">
+                        <label class="answer-label" for="essay1">Jawabanmu</label>
+                        <textarea id="essay1" class="answer-textarea">TCP menjaga pengiriman data tetap andal dan berurutan melalui acknowledgment serta retransmisi. Saya memilih TCP untuk transfer berkas agar data lengkap. UDP tidak menjamin urutan atau kedatangan dan overhead-nya lebih kecil. UDP cocok untuk panggilan suara langsung, karena keterlambatan lebih mengganggu daripada kehilangan sedikit data.</textarea>
+                        <div class="answer-hint">Gunakan kata-katamu sendiri. Periksa kembali sebelum mengirim.</div>
+                    </div>
+                </div>
+
+                <!-- Esai 2 Card -->
+                <div class="essay-card">
+                    <div class="badge-draft">
+                        <span>○</span>
+                        <span>Draf terisi</span>
+                    </div>
+                    <h2 class="essay-title">Esai 2 / Proses enkapsulasi</h2>
+                    <p class="essay-prompt">Jelaskan proses enkapsulasi saat sebuah komputer mengirim data aplikasi melalui jaringan. Sebutkan urutan unit data dan peran port, alamat IP, serta alamat MAC.</p>
+                    
+                    <div class="answer-group">
+                        <label class="answer-label" for="essay2">Jawabanmu</label>
+                        <textarea id="essay2" class="answer-textarea">Data aplikasi turun ke transport dan menjadi segmen TCP atau datagram UDP. Kemudian IP menambahkan informasi alamat menjadi paket. Data Link membungkus paket sebagai frame, lalu Physical mengirim bit. Port menunjukkan layanan atau proses, IP menunjukkan tujuan jaringan, dan MAC dipakai untuk pengiriman di link lokal. Penerima membuka header dengan urutan terbalik.</textarea>
+                        <div class="answer-hint">Gunakan kata-katamu sendiri. Periksa kembali sebelum mengirim.</div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="action-row">
+                    <a href="kuis-soal.html" class="btn-sec">Sebelumnya</a>
+                    <button class="btn-prim" onclick="scrollToDialog()">Kirim Jawaban</button>
+                </div>
+
+                <div class="note-subtle">Contoh draf ditampilkan untuk kebutuhan rancangan antarmuka, bukan jawaban yang diisi otomatis.</div>
+
+                <!-- Alternative State / Dialog Confirmation Preview -->
+                <section class="alternative-state-section" id="confirmationDialog">
+                    <div class="alt-label">KEADAAN ALTERNATIF / DIALOG SETELAH KLIK KIRIM</div>
+                    <div class="dialog-card">
+                        <div class="dialog-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </div>
+                        <h3 class="dialog-title">Kirim jawaban sekarang?</h3>
+                        <p class="dialog-desc">5 pilihan ganda dan 2 esai sudah terisi. Setelah dikirim, jawaban sesi ini tidak dapat diubah.</p>
+                        
+                        <div class="dialog-badge-complete">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span>Lengkap: 5/5 PG · 2/2 esai</span>
+                        </div>
+
+                        <div class="dialog-subtext">Skor PG maksimal 100. Esai menerima umpan balik AI terpisah.</div>
+
+                        <div class="dialog-actions">
+                            <button class="btn-sec" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">Periksa lagi</button>
+                            <a href="hasil.html" class="btn-prim">Ya, kirim</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Quiz Navigation -->
+            <div class="right-column">
+                <!-- Navigasi Soal Card -->
+                <div class="side-card">
+                    <h3 class="side-card-title">Navigasi soal</h3>
+                    <div class="nav-category-label">Pilihan ganda · 5 soal</div>
+                    <div class="pg-grid">
+                        <a href="kuis-soal.html" class="pg-btn">1</a>
+                        <a href="kuis-soal.html" class="pg-btn">2</a>
+                        <a href="kuis-soal.html" class="pg-btn">3</a>
+                        <a href="kuis-soal.html" class="pg-btn">4</a>
+                        <a href="kuis-soal.html" class="pg-btn">5</a>
+                    </div>
+
+                    <div class="nav-category-label">Esai · 2 soal</div>
+                    <div class="essay-nav-grid">
+                        <a href="#essay1" class="essay-nav-btn">Esai 1</a>
+                        <a href="#essay2" class="essay-nav-btn">Esai 2</a>
+                    </div>
+
+                    <div class="nav-helper-text">Biru terisi: sudah dijawab. Biru penuh: soal aktif. Urutan bebas sebelum dikirim.</div>
+                </div>
+
+                <!-- Status Card -->
+                <div class="side-card">
+                    <h3 class="side-card-title">Semua jawaban terisi</h3>
+                    <div class="checklist-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>5 dari 5 pilihan ganda</span>
+                    </div>
+                    <div class="checklist-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>2 dari 2 esai</span>
+                    </div>
+                    <div class="nav-helper-text">Periksa jawaban sebelum konfirmasi akhir.</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function scrollToDialog() {
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.scrollIntoView({ behavior: 'smooth' });
+            dialog.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                dialog.style.transform = 'scale(1)';
+            }, 250);
+        }
+    </script>
+</body>
+</html>

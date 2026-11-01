@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LectuNote AI - Pustaka Materi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-primary-hover: #0D47A1;
+            --color-primary-light: #E3F2FD;
+            --color-text-main: #0F172A;
+            --color-text-secondary: #64748B;
+            --color-text-muted: #94A3B8;
+            --color-surface-white: #FFFFFF;
+            --color-background-main: #F8FAFC;
+            --color-border-default: #E2E8F0;
+            --color-teal: #007887;
+            --color-teal-light: #ECFEFF;
+            --color-success: #15803D;
+            --color-success-light: #F0FDF4;
+            --color-warning-text: #92400E;
+            --color-warning-bg: #FFFBEB;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --sidebar-width: 256px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-background-main);
+            color: var(--color-text-main);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        .app-layout {
+            display: flex;
+            width: 100%;
+            min-height: 100dvh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background: var(--color-surface-white);
+            border-right: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px 20px;
+            min-height: 100dvh;
+            position: sticky;
+            top: 0;
+            height: 100dvh;
+            overflow-y: auto;
+            z-index: 50;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(21, 101, 192, 0.2);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .brand-title-main {
+            color: var(--color-text-main);
+        }
+
+        .brand-title-ai {
+            color: var(--color-teal);
+        }
+
+        .sidebar-close-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: var(--radius-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .sidebar-section-title {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            list-style: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: #F1F5F9;
+            color: var(--color-text-main);
+        }
+
+        .nav-item.active {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary);
+        }
+
+        .sidebar-bottom {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border-default);
+        }
+
+        .profile-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-main);
+            line-height: 1.4;
+        }
+
+        .profile-role {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            font-weight: 400;
+        }
+
+        .profile-motto {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+            margin-top: 4px;
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 100dvh;
+        }
+
+        .top-bar {
+            height: 80px;
+            background: var(--color-surface-white);
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-toggle-btn {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .semester-badge {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            font-weight: 400;
+        }
+
+        .bell-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .bell-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            background: var(--color-teal);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .content-body {
+            padding: 32px 40px 60px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 1440px;
+            width: 100%;
+        }
+
+        /* Header Area */
+        .header-action-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .header-category {
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .header-title {
+            color: var(--color-text-main);
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .header-desc {
+            color: var(--color-text-secondary);
+            font-size: 16px;
+        }
+
+        .btn-create-kit {
+            height: 48px;
+            padding: 12px 24px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(21, 101, 192, 0.2);
+        }
+
+        .btn-create-kit:hover {
+            background: var(--color-primary-hover);
+        }
+
+        /* Filter Card */
+        .filter-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .search-input {
+            width: 100%;
+            height: 48px;
+            padding: 12px 16px;
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--color-text-main);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
+        }
+
+        .filter-tags-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tag-btn {
+            height: 44px;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--color-border-default);
+            background: var(--color-surface-white);
+            color: var(--color-primary);
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+
+        .filter-meta-text {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        /* Material Cards Grid */
+        .material-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .material-card {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .material-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+
+        .mat-status {
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mat-status.incomplete {
+            color: var(--color-warning-text);
+        }
+
+        .mat-status.completed {
+            color: var(--color-success);
+        }
+
+        .mat-status.pending {
+            color: var(--color-text-secondary);
+        }
+
+        .mat-course {
+            color: var(--color-text-main);
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 26px;
+        }
+
+        .mat-topic {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 22px;
+        }
+
+        .mat-stats {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            line-height: 20px;
+        }
+
+        .btn-card-action {
+            height: 48px;
+            width: 100%;
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-card-action:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+        }
+
+        /* Recent Activity Card */
+        .card-activity {
+            background: var(--color-surface-white);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .act-title {
+            color: var(--color-text-main);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .act-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .act-item {
+            padding: 14px 0;
+            border-top: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .act-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--color-text-secondary);
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        .act-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .act-course {
+            color: var(--color-text-main);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .act-desc {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .act-time {
+            color: var(--color-text-secondary);
+            font-size: 12px;
+        }
+
+        /* Mobile Drawer Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            z-index: 45;
+            backdrop-filter: blur(2px);
+        }
+
+        @media (max-width: 900px) {
+            .material-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .sidebar-close-btn {
+                display: block;
+            }
+
+            .menu-toggle-btn {
+                display: flex;
+            }
+
+            .top-bar {
+                padding: 0 20px;
+                height: 68px;
+            }
+
+            .content-body {
+                padding: 24px 20px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <div class="brand-header">
+                    <a href="dashboard.html" class="brand-logo-wrap">
+                        <div class="brand-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                                <path d="M6 6h10"></path>
+                                <path d="M6 10h10"></path>
+                                <path d="M6 14h6"></path>
+                            </svg>
+                        </div>
+                        <div class="brand-title">
+                            <span class="brand-title-main">LectuNote</span>
+                            <span class="brand-title-ai">AI</span>
+                        </div>
+                    </a>
+                    <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Tutup menu">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="sidebar-section-title">RUANG BELAJAR</div>
+
+                <nav>
+                    <ul class="nav-list">
+                        <li>
+                            <a href="dashboard.html" class="nav-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="7" height="7" x="3" y="3" rx="1"></rect>
+                                    <rect width="7" height="7" x="14" y="3" rx="1"></rect>
+                                    <rect width="7" height="7" x="14" y="14" rx="1"></rect>
+                                    <rect width="7" height="7" x="3" y="14" rx="1"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="unggah-materi.html" class="nav-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="2" x2="12" y2="15"></line>
+                                </svg>
+                                <span>Unggah Materi</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="pustaka-materi.html" class="nav-item active">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m16 6 4 14"></path>
+                                    <path d="M12 6v14"></path>
+                                    <path d="M8 8v12"></path>
+                                    <path d="M4 4v16"></path>
+                                </svg>
+                                <span>Pustaka Materi</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="pengaturan&pofile.html" class="nav-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <span>Pengaturan</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div class="profile-name">Aditya Ramadhan</div>
+                <div class="profile-role">Mahasiswa teknik</div>
+                <div class="profile-motto">Ringkas. Pahami. Uji dirimu.</div>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="Buka navigasi">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="breadcrumb">Ruang belajar / Pustaka Materi</div>
+                </div>
+                <div class="top-bar-right">
+                    <div class="semester-badge">Semester ganjil · 2026/2027</div>
+                    <button class="bell-btn" aria-label="Notifikasi">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                        </svg>
+                        <span class="bell-badge"></span>
+                    </button>
+                </div>
+            </header>
+
+            <main class="content-body">
+                <!-- Title Row -->
+                <div class="header-action-row">
+                    <div class="header-title-group">
+                        <div class="header-category">Ruang belajar pribadi</div>
+                        <h1 class="header-title">Pustaka Materi</h1>
+                        <p class="header-desc">Semua sumber, pemahaman, dan latihanmu dalam satu tempat.</p>
+                    </div>
+                    <a href="unggah-materi.html" class="btn-create-kit">+ Buat Study Kit Baru</a>
+                </div>
+
+                <!-- Filter Card -->
+                <div class="filter-card">
+                    <div class="search-box">
+                        <label class="search-label" for="searchMateri">Cari materi</label>
+                        <input type="text" id="searchMateri" class="search-input" placeholder="Cari mata kuliah atau topik…">
+                    </div>
+                    <div class="filter-tags-row">
+                        <button class="tag-btn active">Semua materi (4)</button>
+                        <button class="tag-btn">Kuis belum selesai</button>
+                        <button class="tag-btn">Urutkan: terbaru ↓</button>
+                    </div>
+                    <div class="filter-meta-text">Menampilkan 4 materi · Semester ganjil 2026/2027</div>
+                </div>
+
+                <!-- Material Cards Grid -->
+                <div class="material-grid">
+                    <!-- Card 1: Jaringan Komputer -->
+                    <div class="material-card">
+                        <div>
+                            <div class="mat-status incomplete">
+                                <span>△</span>
+                                <span>Kuis belum selesai</span>
+                            </div>
+                            <h3 class="mat-course">Jaringan Komputer</h3>
+                            <div class="mat-topic">Model OSI & TCP/IP</div>
+                            <div class="mat-stats">24 halaman · 12 kartu · 5 PG + 2 esai</div>
+                        </div>
+                        <a href="ringkasan.html" class="btn-card-action">Lanjutkan belajar</a>
+                    </div>
+
+                    <!-- Card 2: Pemrograman Web -->
+                    <div class="material-card">
+                        <div>
+                            <div class="mat-status completed">
+                                <span>✓</span>
+                                <span>Kuis selesai</span>
+                            </div>
+                            <h3 class="mat-course">Pemrograman Web</h3>
+                            <div class="mat-topic">HTTP, HTML & CSS</div>
+                            <div class="mat-stats">18 halaman · 12 kartu · 5 PG + 2 esai</div>
+                        </div>
+                        <a href="ringkasan.html" class="btn-card-action">Buka Study Kit</a>
+                    </div>
+
+                    <!-- Card 3: Sistem Basis Data -->
+                    <div class="material-card">
+                        <div>
+                            <div class="mat-status pending">
+                                <span>○</span>
+                                <span>Belum dikerjakan</span>
+                            </div>
+                            <h3 class="mat-course">Sistem Basis Data</h3>
+                            <div class="mat-topic">Relasi & normalisasi</div>
+                            <div class="mat-stats">32 halaman · 12 kartu · 5 PG + 2 esai</div>
+                        </div>
+                        <a href="ringkasan.html" class="btn-card-action">Buka Study Kit</a>
+                    </div>
+
+                    <!-- Card 4: Sistem Operasi -->
+                    <div class="material-card">
+                        <div>
+                            <div class="mat-status completed">
+                                <span>✓</span>
+                                <span>Kuis selesai</span>
+                            </div>
+                            <h3 class="mat-course">Sistem Operasi</h3>
+                            <div class="mat-topic">Proses & penjadwalan</div>
+                            <div class="mat-stats">20 halaman · 12 kartu · 5 PG + 2 esai</div>
+                        </div>
+                        <a href="ringkasan.html" class="btn-card-action">Buka Study Kit</a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Card -->
+                <div class="card-activity">
+                    <h2 class="act-title">Aktivitas terbaru</h2>
+                    <div class="act-list">
+                        <div class="act-item">
+                            <div class="act-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="act-content">
+                                <div class="act-course">Jaringan Komputer</div>
+                                <div class="act-desc">Kuis dilanjutkan · 2 PG terisi</div>
+                                <div class="act-time">Hari ini, 09.15</div>
+                            </div>
+                        </div>
+
+                        <div class="act-item">
+                            <div class="act-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="act-content">
+                                <div class="act-course">Pemrograman Web</div>
+                                <div class="act-desc">Kuis selesai · Skor PG 80/100</div>
+                                <div class="act-time">Kemarin, 19.40</div>
+                            </div>
+                        </div>
+
+                        <div class="act-item">
+                            <div class="act-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="act-content">
+                                <div class="act-course">Sistem Basis Data</div>
+                                <div class="act-desc">Study Kit dibuat · 32 halaman</div>
+                                <div class="act-time">22 Oktober, 16.20</div>
+                            </div>
+                        </div>
+
+                        <div class="act-item">
+                            <div class="act-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="act-content">
+                                <div class="act-course">Sistem Operasi</div>
+                                <div class="act-desc">Kuis selesai · Skor PG 80/100</div>
+                                <div class="act-time">21 Oktober, 20.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
