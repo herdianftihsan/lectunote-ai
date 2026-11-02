@@ -4,6 +4,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
+ * ID profil statis "Aditya Ramadhan" (PRD Section 4). Kolom `study_kits.user_id`
+ * ber-DEFAULT ke UUID ini, jadi seed profil harus memakai ID yang sama.
+ */
+export const DEFAULT_PROFILE_ID = "00000000-0000-0000-0000-000000000001";
+
+/**
  * Dilempar saat konfigurasi environment Supabase tidak valid.
  * Pesan hanya menyebut NAMA variabel, tidak pernah nilainya.
  */

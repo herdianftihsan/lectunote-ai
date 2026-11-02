@@ -4,7 +4,11 @@
 
 import { connection, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getSupabase, SupabaseConfigError } from "@/lib/supabase";
+import {
+  DEFAULT_PROFILE_ID,
+  getSupabase,
+  SupabaseConfigError,
+} from "@/lib/supabase";
 
 // Catatan: `export const dynamic = 'force-dynamic'` sengaja TIDAK dipakai.
 // next.config.ts mengaktifkan `cacheComponents: true`, dan pada mode itu route
@@ -16,9 +20,7 @@ type TableName = (typeof TABLES)[number];
 
 const STORAGE_BUCKET = "study-docs";
 
-// ID tetap sesuai PRD Section 4: kolom `study_kits.user_id` ber-DEFAULT ke UUID ini,
-// jadi profil seed WAJIB memakainya agar insert study_kits tidak melanggar FK.
-const DEFAULT_PROFILE_ID = "00000000-0000-0000-0000-000000000001";
+// Profil seed WAJIB memakai DEFAULT_PROFILE_ID agar insert study_kits tidak melanggar FK.
 const DEFAULT_PROFILE_SEED = {
   id: DEFAULT_PROFILE_ID,
   full_name: "Aditya Ramadhan",
