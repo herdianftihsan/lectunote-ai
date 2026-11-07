@@ -82,7 +82,6 @@ lectunote-ai/
 │   │   ├── supabase.ts                      # Inisialisasi Supabase Client
 │   │   ├── pdf-extractor.ts                 # Ekstraksi PDF per halaman dengan marker [HALAMAN X]
 │   │   ├── gemini.ts                        # Konfigurasi Google Gemini API & JSON Schema Validator
-│   │   └── mock-fallback.ts                 # Data JSON Jaringan Komputer (Model OSI) untuk fallback anti-gagal
 │   │
 │   └── types/
 │       └── study-kit.ts                     # 🤝 KONTRAK BERSAMA (TypeScript Interfaces yang dikunci di Bagian 6)
@@ -397,10 +396,10 @@ Berdasarkan data jawaban Pilihan Ganda yang salah dan 2 jawaban Esai mahasiswa b
 
 ### 7.2. Prompt untuk DEVELOPER 2 di ZED EDITOR (Pembuatan Backend, PDF Parser & Gemini AI)
 > "Saya adalah Backend & AI Engineer untuk proyek **LectuNote AI**. Mengacu secara ketat pada **`PRD_LectuNote_AI.md`** (Bagian 2, Bagian 4, Bagian 5, dan Bagian 6), tolong buatkan:
-> 1. File kontrak tipe data `src/types/study-kit.ts` dan data fallback `src/lib/mock-fallback.ts` (berisi data lengkap materi *Jaringan Komputer — Model OSI & TCP/IP* persis seperti isi HTML spesimen).
+> 1. File kontrak tipe data `src/types/study-kit.ts`. Konten materi yang ditampilkan harus berasal dari Supabase; jangan mengganti kegagalan AI atau database dengan data contoh.
 > 2. Modul `src/lib/supabase.ts` dan `src/lib/pdf-extractor.ts` yang mengekstrak teks PDF per halaman dengan menyisipkan penanda `--- [HALAMAN X] ---` serta memvalidasi PDF kosong/scan gambar (`UNREADABLE_PDF_TEXT`).
 > 3. Modul `src/lib/gemini.ts` menggunakan `@google/genai` (`gemini-2.5-flash`) dengan JSON Schema terstruktur.
-> 4. Route Handlers Next.js pada `src/app/api/study-kit/route.ts`, `src/app/api/study-kit/[id]/route.ts`, dan `src/app/api/evaluate-quiz/route.ts` lengkap dengan *automatic fallback* ke `mock-fallback.ts` jika terjadi gangguan jaringan atau limit API saat live demo."
+> 4. Route Handlers Next.js pada `src/app/api/study-kit/route.ts`, `src/app/api/study-kit/[id]/route.ts`, dan `src/app/api/evaluate-quiz/route.ts` yang mengembalikan error eksplisit jika pemrosesan AI gagal; jangan mengembalikan data tiruan.
 
 ---
 
@@ -409,7 +408,7 @@ Berdasarkan data jawaban Pilihan Ganda yang salah dan 2 jawaban Esai mahasiswa b
 ### Minggu 11: Core Development & Slicing
 * **Hari 1–2:**
   * **Dev 1:** Setup Next.js + Tailwind config, buat 3 Layout Utama (`dashboard`, `study-kit`, `quiz-focus`), konversi `dashboard.html` dan `pustaka-materi.html`.
-  * **Dev 2:** Setup project Supabase, jalankan SQL Schema 3 tabel, buat `src/types/study-kit.ts` dan `src/lib/mock-fallback.ts`.
+  * **Dev 2:** Setup project Supabase, jalankan SQL Schema 3 tabel, dan buat `src/types/study-kit.ts`.
 * **Hari 3–5:**
   * **Dev 1:** Konversi `unggah-materi.html` (+ Web Speech API) dan state loading `pemrosesan-ai.html`, serta halaman `ringkasan.html` dan `flashcard.html` (1-card flip).
   * **Dev 2:** Buat `pdf-extractor.ts` (dengan penanda halaman) dan endpoint `POST /api/study-kit` terintegrasi Gemini Flash API.

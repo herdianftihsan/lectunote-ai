@@ -104,43 +104,30 @@ export type QuizStatus = "not-started" | "unfinished" | "completed";
 
 export interface StudyKitRecord {
   id: string;
-  user_id: string;
+  profile_id: string;
   course_name: string;
   topic_title: string;
   file_name: string;
-  file_size_label: string;
-  page_count: number;
-  storage_path?: string | null;
-  user_notes?: string | null;
+  file_size_bytes: number | null;
+  storage_path: string | null;
+  user_notes: string | null;
   quiz_status: QuizStatus;
-  last_mcq_score?: number | null;
-  kit_content: StudyKitContent;
-  quiz_evaluation?: QuizEvaluationResult | null;
+  kit_content: StudyKitContent | null;
   created_at: string;
-  updated_at: string;
 }
 
 export interface ProfileRecord {
   id: string;
   full_name: string;
-  email: string;
-  role_title: string;
-  motto: string;
-  major: string;
-  semester: number;
-  academic_period: string;
-  weekly_target_sessions: number;
-  completed_sessions_this_week: number;
-  reminder_enabled: boolean;
-  email_summary_enabled: boolean;
-  reduced_motion: boolean;
+  role_title: string | null;
+  major: string | null;
+  semester: number | null;
   created_at: string;
 }
 
 export interface ActivityLogRecord {
   id: string;
-  study_kit_id: string;
-  course_name: string;
+  study_kit_id: string | null;
   action_description: string;
   created_at: string;
 }

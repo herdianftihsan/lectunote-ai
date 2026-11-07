@@ -3,6 +3,7 @@
 // HANYA untuk server (API routes / Server Actions). Jangan import dari Client Component.
 
 import {
+  GoogleGenerativeAIFetchError,
   GoogleGenerativeAI,
   SchemaType,
   type ResponseSchema,
@@ -21,6 +22,7 @@ import type {
  * `GEMINI_MODEL` di .env.local bila perlu ganti model tanpa mengubah kode.
  */
 export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
+const FALLBACK_GEMINI_MODEL = "gemini-3.1-flash-lite";
 
 /** Dilempar saat konfigurasi Gemini tidak valid. Pesan tidak pernah memuat nilai API key. */
 export class GeminiConfigError extends Error {
@@ -462,39 +464,76 @@ export function parseStudyKitContent(
 export async function generateStudyKit(
   input: StudyKitPromptInput,
 ): Promise<StudyKitContent> {
-  const model = getGenAI().getGenerativeModel(
-    {
-      model: getGeminiModelName(),
-      systemInstruction: STUDY_KIT_SYSTEM_PROMPT,
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: STUDY_KIT_SCHEMA,
-        temperature: 0.3,
-        maxOutputTokens: 16_384,
-      },
-    },
-    { timeout: STUDY_KIT_TIMEOUT_MS },
-  );
-
+  const modelNames = [
+    ...new Set([
+      getGeminiModelName(),
+      FALLBACK_GEMINI_MODEL,
+      DEFAULT_GEMINI_MODEL,
+    ]),
+  ];
   const prompt = buildStudyKitPrompt(input);
   let lastError: unknown;
 
-  for (let attempt = 1; attempt <= STUDY_KIT_MAX_ATTEMPTS; attempt++) {
-    const result = await model.generateContent(prompt);
-    try {
-      const parsed: unknown = JSON.parse(result.response.text());
-      return parseStudyKitContent(parsed, input.courseName);
-    } catch (error: unknown) {
-      if (
-        !(error instanceof SyntaxError) &&
-        !(error instanceof StudyKitValidationError)
-      ) {
+  for (const [modelIndex, modelName] of modelNames.entries()) {
+    const model = getGenAI().getGenerativeModel(
+      {
+        model: modelName,
+        systemInstruction: STUDY_KIT_SYSTEM_PROMPT,
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: STUDY_KIT_SCHEMA,
+          temperature: 0.3,
+          maxOutputTokens: 16_384,
+        },
+      },
+      { timeout: STUDY_KIT_TIMEOUT_MS },
+    );
+
+    for (let attempt = 1; attempt <= STUDY_KIT_MAX_ATTEMPTS; attempt++) {
+      let result;
+      try {
+        result = await model.generateContent(prompt);
+      } catch (error: unknown) {
+        const isTemporarilyUnavailable =
+          error instanceof GoogleGenerativeAIFetchError && error.status === 503;
+
+        if (!isTemporarilyUnavailable) {
+          throw error;
+        }
+
+        if (modelIndex < modelNames.length - 1) {
+          console.warn(
+            `[gemini] Model ${modelName} sedang sibuk (503); beralih ke model cadangan ${modelNames[modelIndex + 1]}.`,
+          );
+          break;
+        }
+
         throw error;
       }
-      lastError = error;
-      console.warn(
-        `[gemini] Output study kit tidak valid (percobaan ${attempt}/${STUDY_KIT_MAX_ATTEMPTS}): ${error.message}`,
-      );
+
+      try {
+        const parsed: unknown = JSON.parse(result.response.text());
+        return parseStudyKitContent(parsed, input.courseName);
+      } catch (error: unknown) {
+        if (
+          !(error instanceof SyntaxError) &&
+          !(error instanceof StudyKitValidationError)
+        ) {
+          throw error;
+        }
+        lastError = error;
+        console.warn(
+          `[gemini] Output study kit dari ${modelName} tidak valid (percobaan ${attempt}/${STUDY_KIT_MAX_ATTEMPTS}): ${error.message}`,
+        );
+        if (
+          attempt === STUDY_KIT_MAX_ATTEMPTS &&
+          modelIndex < modelNames.length - 1
+        ) {
+          console.warn(
+            `[gemini] Beralih ke model cadangan ${modelNames[modelIndex + 1]} setelah output tidak valid dari ${modelName}.`,
+          );
+        }
+      }
     }
   }
 
@@ -550,6 +589,14 @@ export function classifyGeminiError(error: unknown): {
         "GEMINI_API_KEY ditolak oleh Google. Periksa nilainya di .env.local.",
       code: "GEMINI_AUTH_FAILED",
       status: 500,
+    };
+  }
+  if (/\[503(?:\s|\])/.test(raw) || /service unavailable|high demand/i.test(raw)) {
+    return {
+      message:
+        "Layanan AI sedang sibuk karena permintaan tinggi. Silakan coba lagi beberapa saat lagi.",
+      code: "GEMINI_TEMPORARILY_UNAVAILABLE",
+      status: 503,
     };
   }
   if (/abort|timeout|timed out/i.test(raw)) {

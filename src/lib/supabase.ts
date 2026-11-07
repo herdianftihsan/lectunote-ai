@@ -4,8 +4,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * ID profil statis "Aditya Ramadhan" (PRD Section 4). Kolom `study_kits.user_id`
- * ber-DEFAULT ke UUID ini, jadi seed profil harus memakai ID yang sama.
+ * ID profil statis "Aditya Ramadhan" (PRD Section 4). Kolom `study_kits.profile_id`
+ * mereferensikan profil ini pada skema database yang dipakai aplikasi.
  */
 export const DEFAULT_PROFILE_ID = "00000000-0000-0000-0000-000000000001";
 

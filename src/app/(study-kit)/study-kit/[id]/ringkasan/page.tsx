@@ -1,159 +1,230 @@
-// src/app/(study-kit)/study-kit/[id]/ringkasan/page.tsx
-// Halaman Ringkasan Materi (Konversi dari ringkasan.html)
-"use client";
-
-import React, { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Copy, Check, Sparkles, ArrowRight } from "lucide-react";
-import { mockStudyKitContent } from "@/lib/mock-data";
+import { notFound } from "next/navigation";
+import { ArrowRight, Sparkles } from "lucide-react";
+import CopySummaryButton from "./CopySummaryButton";
+import { fetchStudyKitContent } from "@/lib/study-kit-content";
 
-export default function RingkasanPage() {
-  const params = useParams();
-  const id = (params?.id as string) || "demo-jaringan-komputer";
-  const [copied, setCopied] = useState(false);
+interface RingkasanPageProps {
+  params: Promise<{ id: string }>;
+}
 
-  const handleCopy = () => {
-    let text = `${mockStudyKitContent.study_kit_metadata.course_name} — ${mockStudyKitContent.study_kit_metadata.topic_title}\n\n`;
-    mockStudyKitContent.summary.sections.forEach((sec) => {
-      text += `${sec.section_number} / ${sec.title}\n${sec.paragraphs.join("\n")}\n\n`;
-    });
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
+export default async function RingkasanPage({
+  params,
+}: RingkasanPageProps) {
+  const { id } = await params;
+  const studyKit = await fetchStudyKitContent(id);
+  if (!studyKit.found) {
+    notFound();
+  }
+
+  const content = studyKit.content;
+  const sections = content?.summary?.sections ?? [];
+  const coreConcepts = content?.summary?.core_concepts ?? [];
+  const summaryGoal = content?.study_kit_metadata?.summary_goal;
+
+  const summaryText = [
+    [
+      content?.study_kit_metadata?.course_name,
+      content?.study_kit_metadata?.topic_title,
+    ]
+      .filter(Boolean)
+      .join(" — "),
+    summaryGoal ? `Tujuan: ${summaryGoal}` : "",
+    ...sections.map((section) =>
+      [
+        [section.section_number, section.title].filter(Boolean).join(" / "),
+        ...(section.paragraphs ?? []),
+        ...(section.bullet_points ?? []).map((point) => `• ${point}`),
+        section.page_reference
+          ? `Rujukan contoh · ${section.page_reference}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    ),
+  ].filter(Boolean).join("\n\n");
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* AI Notice Banner */}
-      <div className="flex items-center gap-2 p-3 bg-teal-light text-teal rounded-xl text-xs font-semibold">
-        <Sparkles className="w-4 h-4 shrink-0" />
-        <span>Konten AI dapat kurang akurat. Periksa kembali dengan PDF sumber dan catatan dosen.</span>
+    <div className="flex flex-col gap-6 w-full">
+      {/* Notice Banner */}
+      <div className="flex items-center gap-2.5 rounded-xl bg-teal-light p-4 text-sm font-semibold text-teal">
+        <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <span>
+          Konten AI dapat kurang akurat. Periksa kembali dengan PDF sumber dan catatan dosen.
+        </span>
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-        {/* Left Column: Summary Content */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-sm">
-            {/* Header Row */}
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-              <h2 className="text-xl font-bold text-text-main">Ringkasan materi</h2>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background border border-border hover:bg-slate-100 text-xs font-semibold rounded-lg text-text-main transition-colors"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? "Tersalin" : "Salin"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => alert("Fitur pembuatan ulang ringkasan akan memanggil Gemini API.")}
-                  className="px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-primary transition-colors"
-                >
-                  Buat ulang
-                </button>
+      {!content || sections.length === 0 ? (
+        <section
+          aria-live="polite"
+          className="rounded-2xl border border-warning-border bg-warning-bg p-6 text-sm text-warning-text"
+        >
+          Konten AI sedang diproses atau gagal dimuat.
+        </section>
+      ) : (
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_288px]">
+          {/* Left Column: Summary Content */}
+          <div className="flex min-w-0 flex-col gap-6">
+            <section className="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              {/* Summary Header */}
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+                <h2 className="text-2xl font-bold text-text-main">
+                  Ringkasan materi
+                </h2>
+                <CopySummaryButton text={summaryText} />
               </div>
-            </div>
 
-            <p className="text-xs font-semibold text-text-secondary">
-              {mockStudyKitContent.study_kit_metadata.summary_goal}
-            </p>
+              {summaryGoal && (
+                <p className="text-base leading-relaxed text-text-secondary">
+                  <strong>Tujuan:</strong> {summaryGoal}
+                </p>
+              )}
 
-            {/* Sections 01 - 05 */}
-            <div className="flex flex-col gap-8">
-              {mockStudyKitContent.summary.sections.map((sec) => (
-                <article
-                  key={sec.section_number}
-                  id={`section-${sec.section_number}`}
-                  className="flex flex-col gap-3 scroll-mt-24"
-                >
-                  <h3 className="text-base sm:text-lg font-bold text-text-main">
-                    {sec.section_number} / {sec.title}
-                  </h3>
-                  <div className="flex flex-col gap-2 text-sm leading-relaxed text-text-main/90">
-                    {sec.paragraphs.map((p, idx) => (
-                      <p key={idx}>{p}</p>
-                    ))}
-                    {sec.bullet_points.length > 0 && (
-                      <ul className="list-disc pl-5 flex flex-col gap-1.5 mt-1 text-text-secondary text-xs sm:text-sm">
-                        {sec.bullet_points.map((pt, idx) => (
-                          <li key={idx}>{pt}</li>
+              {/* Sections List */}
+              <div className="flex flex-col gap-8">
+                {sections.map((section, index) => {
+                  const sectionNumber = section.section_number || `0${index + 1}`.slice(-2);
+                  const sectionId = `section-${sectionNumber}`;
+                  const paragraphs = section.paragraphs ?? [];
+                  const bulletPoints = section.bullet_points ?? [];
+
+                  return (
+                    <article
+                      key={sectionId}
+                      id={sectionId}
+                      aria-labelledby={`heading-${sectionNumber}`}
+                      className="flex scroll-mt-24 flex-col gap-3.5 border-t border-border pt-6 first:border-0 first:pt-0"
+                    >
+                      <h3
+                        id={`heading-${sectionNumber}`}
+                        className="text-[22px] font-bold text-text-main leading-snug"
+                      >
+                        {[sectionNumber, section.title]
+                          .filter(Boolean)
+                          .join(" / ") || "Topik belum tersedia"}
+                      </h3>
+
+                      <div className="flex flex-col gap-3 text-base leading-relaxed text-text-main">
+                        {paragraphs.map((paragraph, paragraphIndex) => (
+                          <p key={`${sectionId}-paragraph-${paragraphIndex}`}>
+                            {paragraph}
+                          </p>
                         ))}
-                      </ul>
-                    )}
-                  </div>
-                  <div className="text-xs font-semibold text-primary hover:underline cursor-pointer w-fit">
-                    Rujukan contoh · {sec.page_reference}
-                  </div>
-                </article>
-              ))}
+
+                        {bulletPoints.length > 0 && (
+                          <ul className="flex flex-col gap-2.5 pl-0 list-none mt-1">
+                            {bulletPoints.map((point, pointIndex) => (
+                              <li
+                                key={`${sectionId}-point-${pointIndex}`}
+                                className="relative pl-4 text-text-main leading-relaxed before:content-['•'] before:absolute before:left-0 before:text-text-main before:font-bold"
+                              >
+                                {point}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      {section.page_reference && (
+                        <div>
+                          <a
+                            href={`#${sectionId}`}
+                            className="text-xs font-semibold text-primary hover:underline inline-block mt-1"
+                          >
+                            Rujukan contoh · {section.page_reference}
+                          </a>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Disclaimer Card */}
+            <div className="rounded-2xl border border-border bg-background p-4 text-xs leading-relaxed text-text-secondary">
+              Rujukan halaman adalah contoh pemetaan pada materi demo. Cocokkan dengan PDF asli sebelum dipakai untuk belajar atau penilaian.
+            </div>
+
+            {/* Bottom CTA Button */}
+            <div>
+              <Link
+                href={`/study-kit/${id}/kuis`}
+                className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-hover"
+              >
+                <span>Mulai Kuis</span>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </div>
           </div>
 
-          {/* CTA Mulai Kuis */}
-          <div>
-            <Link
-              href={`/study-kit/${id}/kuis`}
-              className="inline-flex items-center gap-2 h-12 px-6 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
-            >
-              <span>Mulai Kuis</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
+          {/* Right Column: Side Cards */}
+          <aside className="flex flex-col gap-6">
+            {/* Card 1: TOC */}
+            <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <h3 className="text-lg font-bold text-text-main">
+                Dalam ringkasan ini
+              </h3>
+              <nav aria-label="Daftar bab ringkasan">
+                <ul className="flex flex-col gap-3 list-none">
+                  {sections.map((section, index) => {
+                    const sectionNumber = section.section_number || `0${index + 1}`.slice(-2);
+                    return (
+                      <li key={sectionNumber}>
+                        <a
+                          href={`#section-${sectionNumber}`}
+                          className="block text-sm font-semibold text-primary hover:text-primary-dark hover:underline transition-colors"
+                        >
+                          {sectionNumber} {section.title}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            </section>
 
-        {/* Right Column: TOC & Core Concepts */}
-        <div className="flex flex-col gap-6">
-          {/* TOC Card */}
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
-            <h3 className="text-sm font-bold text-text-main">Dalam ringkasan ini</h3>
-            <ul className="flex flex-col gap-2 text-xs font-medium text-text-secondary">
-              {mockStudyKitContent.summary.sections.map((sec) => (
-                <li key={sec.section_number}>
-                  <a
-                    href={`#section-${sec.section_number}`}
-                    className="hover:text-primary transition-colors block py-0.5"
-                  >
-                    {sec.section_number} {sec.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Core Concepts Card */}
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
-            <div className="text-xs font-bold text-teal bg-teal-light px-3 py-1 rounded-full w-fit">
-              Konsep inti
-            </div>
-            <h3 className="text-sm font-bold text-text-main">Ingat perbedaannya</h3>
-            <div className="flex flex-col gap-1.5 text-xs text-text-secondary">
-              {mockStudyKitContent.summary.core_concepts.map((concept, idx) => (
-                <div key={idx} className="p-2 bg-background rounded-lg font-medium">
-                  {concept}
+            {/* Card 2: Core Concepts */}
+            {coreConcepts.length > 0 && (
+              <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary-light text-primary-dark rounded-lg text-xs font-semibold w-fit">
+                  <span>○</span>
+                  <span>Konsep inti</span>
                 </div>
-              ))}
-            </div>
-          </div>
+                <h3 className="text-lg font-bold text-text-main">
+                  Ingat perbedaannya
+                </h3>
+                <div className="flex flex-col gap-2 text-sm font-semibold text-text-main">
+                  {coreConcepts.map((concept, index) => (
+                    <div
+                      key={`${concept}-${index}`}
+                      className="rounded-lg bg-background p-2.5 border border-border"
+                    >
+                      {concept}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* Start Quiz Card */}
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
-            <h3 className="text-sm font-bold text-text-main">Sudah memahami intinya?</h3>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Uji pemahaman lewat 5 pilihan ganda dan 2 esai. Jawaban dibahas setelah pengiriman.
-            </p>
-            <Link
-              href={`/study-kit/${id}/kuis`}
-              className="inline-flex items-center justify-center h-10 w-full bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl shadow-xs transition-all"
-            >
-              Mulai Kuis
-            </Link>
-          </div>
+            {/* Card 3: Quiz Prompt */}
+            <section className="flex flex-col gap-3.5 rounded-2xl border border-border bg-surface p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <h3 className="text-lg font-bold text-text-main">
+                Sudah memahami intinya?
+              </h3>
+              <p className="text-sm leading-normal text-text-secondary">
+                Uji pemahaman lewat 5 pilihan ganda dan 2 esai. Jawaban dibahas setelah pengiriman.
+              </p>
+              <Link
+                href={`/study-kit/${id}/kuis`}
+                className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-hover text-center"
+              >
+                Mulai Kuis
+              </Link>
+            </section>
+          </aside>
         </div>
-      </div>
+      )}
     </div>
   );
 }

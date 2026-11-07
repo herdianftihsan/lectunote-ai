@@ -1,190 +1,134 @@
-// src/app/(dashboard)/pengaturan/page.tsx
-// Halaman Pengaturan & Profil (Konversi dari pengaturan&pofile.html)
-"use client";
+import { ShieldCheck } from "lucide-react";
+import { notFound } from "next/navigation";
+import { DEFAULT_PROFILE_ID, getSupabase } from "@/lib/supabase";
 
-import React, { useState } from "react";
-import { Check, ShieldCheck } from "lucide-react";
-import { mockDefaultProfile } from "@/lib/mock-data";
+interface ProfileSettings {
+  full_name: string;
+  role_title: string | null;
+  major: string | null;
+  semester: number | null;
+}
 
-export default function PengaturanPage() {
-  const [profile, setProfile] = useState(mockDefaultProfile);
-  const [isSaved, setIsSaved] = useState(false);
+export default async function PengaturanPage() {
+  const { data: profile, error } = await getSupabase()
+    .from("profiles")
+    .select("full_name, role_title, major, semester")
+    .eq("id", DEFAULT_PROFILE_ID)
+    .maybeSingle<ProfileSettings>();
 
-  const handleSave = () => {
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
-  };
+  if (error) {
+    throw new Error("Gagal memuat profil.", { cause: error });
+  }
+  if (!profile) {
+    notFound();
+  }
+
+  const initials = profile.full_name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toLocaleUpperCase("id-ID") ?? "")
+    .join("");
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Page Title */}
-      <section className="flex flex-col gap-1">
-        <div className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          Akun pribadi
+    <div className="flex flex-col gap-6 w-full">
+      <section className="flex flex-col gap-1.5">
+        <div className="text-sm font-semibold text-primary">
+          AKUN PRIBADI
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-text-main">
-          Pengaturan & profil
+        <h1 className="text-3xl sm:text-[32px] font-bold text-text-main leading-tight tracking-tight">
+          Pengaturan &amp; profil
         </h1>
-        <p className="text-sm text-text-secondary">
-          Sesuaikan ruang belajar agar nyaman untukmu.
+        <p className="text-base text-text-secondary leading-normal">
+          Informasi profil yang tersimpan di akun Anda.
         </p>
       </section>
 
-      {/* 2 Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
-        {/* Left Column: Form */}
-        <div className="flex flex-col gap-6">
-          {/* Profile Card */}
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary-light text-primary font-bold text-lg flex items-center justify-center">
-                AR
-              </div>
-              <div>
-                <div className="text-base font-bold text-text-main">{profile.full_name}</div>
-                <div className="text-xs text-text-secondary">{profile.role_title}</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-text-secondary">Nama lengkap</label>
-              <input
-                type="text"
-                value={profile.full_name}
-                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                className="p-3 bg-background border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-text-secondary">Alamat surel</label>
-              <input
-                type="email"
-                value={profile.email}
-                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                className="p-3 bg-background border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-text-secondary">Program studi</label>
-                <input
-                  type="text"
-                  value={profile.major}
-                  onChange={(e) => setProfile({ ...profile, major: e.target.value })}
-                  className="p-3 bg-background border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-text-secondary">Semester</label>
-                <input
-                  type="number"
-                  value={profile.semester}
-                  onChange={(e) => setProfile({ ...profile, semester: Number(e.target.value) })}
-                  className="p-3 bg-background border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Learning Preferences */}
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-sm">
-            <h2 className="text-base font-bold text-text-main">Preferensi belajar</h2>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-text-secondary">
-                Target belajar mingguan
-              </label>
-              <input
-                type="text"
-                value={`${profile.weekly_target_sessions} sesi belajar`}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    weekly_target_sessions: parseInt(e.target.value) || 4,
-                  })
-                }
-                className="p-3 bg-background border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary"
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-background border border-border rounded-xl">
-              <div>
-                <div className="text-sm font-semibold text-text-main">Pengingat belajar</div>
-                <div className="text-xs text-text-secondary">
-                  Tampilkan pengingat sesuai preferensi belajarmu.
-                </div>
-              </div>
-              <input
-                type="checkbox"
-                checked={profile.reminder_enabled}
-                onChange={(e) => setProfile({ ...profile, reminder_enabled: e.target.checked })}
-                className="w-5 h-5 accent-primary cursor-pointer"
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-background border border-border rounded-xl">
-              <div>
-                <div className="text-sm font-semibold text-text-main">
-                  Ringkasan aktivitas lewat surel
-                </div>
-                <div className="text-xs text-text-secondary">
-                  Terima ikhtisar perkembangan belajar.
-                </div>
-              </div>
-              <input
-                type="checkbox"
-                checked={profile.email_summary_enabled}
-                onChange={(e) =>
-                  setProfile({ ...profile, email_summary_enabled: e.target.checked })
-                }
-                className="w-5 h-5 accent-primary cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Action Button & Success Specimen */}
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={handleSave}
-              className="w-fit h-12 px-6 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        {/* Main Profile Info Card */}
+        <section className="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center gap-4 border-b border-border pb-6">
+            <div
+              aria-hidden="true"
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary-light text-xl font-bold text-primary shadow-xs"
             >
-              Simpan Perubahan
-            </button>
-
-            {isSaved && (
-              <div className="flex items-center gap-2 p-3 bg-success-light text-success border border-success/20 rounded-xl text-xs font-semibold">
-                <Check className="w-4 h-4" />
-                <span>Perubahan profil berhasil disimpan.</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Info Column */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
-            <h3 className="text-base font-bold text-text-main">Tampilan & aksesibilitas</h3>
-            <div className="text-xs text-teal font-semibold bg-teal-light px-3 py-1 rounded-full w-fit">
-              Mode terang aktif
+              {initials}
             </div>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Kontras yang jelas dan latar netral untuk kenyamanan membaca materi dalam waktu lama.
-            </p>
+            <div>
+              <h2 className="text-lg font-bold text-text-main">
+                {profile.full_name}
+              </h2>
+              {profile.role_title && (
+                <p className="text-sm text-text-secondary mt-0.5">
+                  {profile.role_title}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
-            <div className="w-9 h-9 rounded-lg bg-primary-light text-primary flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-1 rounded-xl bg-background p-4 border border-border">
+              <dt className="text-xs font-semibold text-text-secondary">
+                Nama lengkap
+              </dt>
+              <dd className="text-sm font-semibold text-text-main">{profile.full_name}</dd>
             </div>
-            <h3 className="text-base font-bold text-text-main">Kelola materi dengan sadar</h3>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Unggah hanya materi perkuliahan yang boleh kamu gunakan. Privasi dan perlindungan data akademik mahasiswa diutamakan.
+            <div className="flex flex-col gap-1 rounded-xl bg-background p-4 border border-border">
+              <dt className="text-xs font-semibold text-text-secondary">
+                Program studi
+              </dt>
+              <dd className="text-sm font-semibold text-text-main">
+                {profile.major || "Teknik Informatika"}
+              </dd>
+            </div>
+            <div className="flex flex-col gap-1 rounded-xl bg-background p-4 border border-border">
+              <dt className="text-xs font-semibold text-text-secondary">
+                Semester
+              </dt>
+              <dd className="text-sm font-semibold text-text-main">
+                {profile.semester == null
+                  ? "Semester 5"
+                  : `Semester ${profile.semester}`}
+              </dd>
+            </div>
+            <div className="flex flex-col gap-1 rounded-xl bg-background p-4 border border-border">
+              <dt className="text-xs font-semibold text-text-secondary">
+                Peran
+              </dt>
+              <dd className="text-sm font-semibold text-text-main">
+                {profile.role_title || "Mahasiswa"}
+              </dd>
+            </div>
+          </dl>
+
+          <p className="rounded-xl border border-border bg-background p-4 text-xs leading-relaxed text-text-secondary">
+            Informasi profil ditampilkan dari database Supabase. Akun ini disiapkan secara default untuk demo akademik tanpa hambatan login.
+          </p>
+        </section>
+
+        {/* Sidebar Info */}
+        <aside className="flex flex-col gap-6">
+          <section className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <h2 className="text-base font-bold text-text-main">
+              Tampilan &amp; aksesibilitas
+            </h2>
+            <p className="text-xs leading-relaxed text-text-secondary">
+              Mode kontras tinggi dan ukuran font disesuaikan otomatis dengan preferensi browser sistem Anda.
             </p>
-          </div>
-        </div>
+          </section>
+
+          <section className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light text-primary">
+              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <h2 className="text-base font-bold text-text-main">
+              Kelola materi dengan sadar
+            </h2>
+            <p className="text-xs leading-relaxed text-text-secondary">
+              Unggah hanya materi perkuliahan yang sah untuk Anda pelajari. Perlindungan data akademik dan privasi mahasiswa diutamakan.
+            </p>
+          </section>
+        </aside>
       </div>
     </div>
   );
