@@ -23,6 +23,11 @@ export default function StudyKitHeader({
 }: StudyKitHeaderProps) {
   const pathname = usePathname();
 
+  // Halaman hasil kuis memiliki header mandiri sesuai _html_design_reference/hasil.html
+  if (pathname.includes("/hasil")) {
+    return null;
+  }
+
   const tabs = [
     {
       label: "Ringkasan",

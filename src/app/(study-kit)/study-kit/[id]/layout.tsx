@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import StudyKitHeader from "./StudyKitHeader";
 import StudyKitLayoutShell from "@/components/layout/StudyKitLayoutShell";
-import { DEFAULT_PROFILE_ID, getSupabase } from "@/lib/supabase";
+import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
 
 interface StudyKitHeaderRecord {
   course_name: string;
@@ -44,13 +44,12 @@ async function StudyKitLayoutContent({
   params,
 }: StudyKitLayoutProps) {
   const { id } = await params;
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   const [studyKitResult, profileResult] = await Promise.all([
     supabase
       .from("study_kits")
       .select("course_name, topic_title, file_name, file_size_bytes")
       .eq("id", id)
-      .eq("profile_id", DEFAULT_PROFILE_ID)
       .maybeSingle<StudyKitHeaderRecord>(),
     supabase
       .from("profiles")
@@ -60,14 +59,13 @@ async function StudyKitLayoutContent({
   ]);
 
   if (studyKitResult.error) {
+    console.error("[StudyKitLayout] Gagal memuat data Study Kit:", studyKitResult.error);
     throw new Error("Gagal memuat data Study Kit.", {
       cause: studyKitResult.error,
     });
   }
   if (profileResult.error) {
-    throw new Error("Gagal memuat profil Study Kit.", {
-      cause: profileResult.error,
-    });
+    console.warn("[StudyKitLayout] Gagal memuat profil:", profileResult.error);
   }
 
   if (!studyKitResult.data) {

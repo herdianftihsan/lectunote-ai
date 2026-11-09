@@ -47,6 +47,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
 
   return (
     <QuizEngine
+      studyKitId={id}
       multipleChoice={quizItems}
       essay={essayItems}
       courseName={content.study_kit_metadata?.course_name}

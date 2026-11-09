@@ -1,6 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
-import { DEFAULT_PROFILE_ID, getSupabase } from "@/lib/supabase";
+import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
 
 interface ProfileSettings {
   full_name: string;
@@ -10,7 +10,7 @@ interface ProfileSettings {
 }
 
 export default async function PengaturanPage() {
-  const { data: profile, error } = await getSupabase()
+  const { data: profile, error } = await getServerSupabase()
     .from("profiles")
     .select("full_name, role_title, major, semester")
     .eq("id", DEFAULT_PROFILE_ID)

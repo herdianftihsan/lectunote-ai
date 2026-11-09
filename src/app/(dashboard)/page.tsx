@@ -8,7 +8,7 @@ import {
   Target,
   ArrowRight,
 } from "lucide-react";
-import { DEFAULT_PROFILE_ID, getSupabase } from "@/lib/supabase";
+import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
 
 interface DashboardStudyKit {
   id: string;
@@ -35,7 +35,7 @@ function formatCreatedAt(value: string): string {
 }
 
 export default async function DashboardPage() {
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   const [kitsResult, profileResult, allKitsStats] = await Promise.all([
     supabase
       .from("study_kits")

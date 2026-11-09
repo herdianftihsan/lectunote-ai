@@ -1,6 +1,6 @@
 // src/app/(dashboard)/layout.tsx
 import React, { Suspense } from "react";
-import { DEFAULT_PROFILE_ID, getSupabase } from "@/lib/supabase";
+import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
 import DashboardNavigation from "@/components/layout/DashboardNavigation";
 
 interface DashboardProfile {
@@ -32,7 +32,7 @@ async function DashboardShell({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: profile, error } = await getSupabase()
+  const { data: profile, error } = await getServerSupabase()
     .from("profiles")
     .select("full_name, role_title, semester")
     .eq("id", DEFAULT_PROFILE_ID)

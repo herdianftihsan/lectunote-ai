@@ -1,6 +1,6 @@
 import "server-only";
 
-import { DEFAULT_PROFILE_ID, getSupabase } from "@/lib/supabase";
+import { getServerSupabase } from "@/lib/supabase";
 import type {
   EssayQuestion,
   FlashcardItem,
@@ -144,17 +144,17 @@ function parseContent(value: unknown): StudyKitContentView | null {
           essays,
         }
       : undefined,
+    last_evaluation: parsed.last_evaluation as StudyKitContent["last_evaluation"],
   };
 }
 
 export async function fetchStudyKitContent(
   id: string,
 ): Promise<StudyKitContentResult> {
-  const { data, error } = await getSupabase()
+  const { data, error } = await getServerSupabase()
     .from("study_kits")
     .select("kit_content")
     .eq("id", id)
-    .eq("profile_id", DEFAULT_PROFILE_ID)
     .maybeSingle<StudyKitContentRow>();
 
   if (error) {

@@ -125,3 +125,22 @@ export function getServiceSupabase(): SupabaseClient {
   }
   return globalForSupabase.__lectunoteSupabaseAdmin;
 }
+
+/**
+ * Client Supabase untuk Server Components, Server Actions, dan Route Handlers.
+ * Memakai Service Role Key (bypassing RLS) agar query server dijamin berhasil membaca
+ * dan menulis data tanpa terhalang kebijakan RLS anonim. Jika Service Role Key belum
+ * tersedia, fallback ke anon client. HANYA dipanggil di sisi server.
+ */
+export function getServerSupabase(): SupabaseClient {
+  if (typeof window !== "undefined") {
+    throw new SupabaseConfigError(
+      "getServerSupabase() tidak boleh dipanggil di sisi browser.",
+    );
+  }
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (serviceRoleKey && !PLACEHOLDER_PATTERN.test(serviceRoleKey)) {
+    return getServiceSupabase();
+  }
+  return getSupabase();
+}

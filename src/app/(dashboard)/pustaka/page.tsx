@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Clock, Plus, Search, BookOpen } from "lucide-react";
-import { DEFAULT_PROFILE_ID, getSupabase } from "@/lib/supabase";
+import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
 
 interface LibraryStudyKit {
   id: string;
@@ -43,7 +43,7 @@ function formatDate(value: string): string {
 }
 
 export default async function PustakaPage() {
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   const { data: kits, error: kitsError } = await supabase
     .from("study_kits")
     .select(

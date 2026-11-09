@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
   AlertCircle,
+  Loader2,
   X,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ export interface QuizEssayItem {
 }
 
 interface QuizEngineProps {
+  studyKitId?: string;
   multipleChoice: QuizMultipleChoiceItem[];
   essay: QuizEssayItem[];
   courseName?: string;
@@ -29,16 +31,20 @@ interface QuizEngineProps {
 }
 
 export default function QuizEngine({
+  studyKitId,
   multipleChoice,
   essay,
   courseName,
   topicTitle,
 }: QuizEngineProps) {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const effectiveId = (studyKitId || params?.id || "").trim();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [activeIndex, setActiveIndex] = useState(0);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const totalMcq = multipleChoice.length;
   const totalEssay = essay.length;
@@ -65,12 +71,85 @@ export default function QuizEngine({
     }));
   }
 
-  function submitAnswers() {
+  async function submitAnswers() {
+    if (!effectiveId) {
+      setSubmitError("ID Study Kit tidak valid. Silakan muat ulang halaman.");
+      return;
+    }
+
+    if (isSubmitting) return;
     setIsSubmitting(true);
-    console.log("Submitting quiz answers:", answers);
-    setShowSubmitModal(false);
-    window.alert("Jawaban kuis berhasil dikumpulkan!");
-    setIsSubmitting(false);
+    setSubmitError(null);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 30_000);
+
+    try {
+      const mcq_answers = Array.from({ length: totalMcq }).map((_, i) => {
+        const val = answers[`mcq_${i}`];
+        if (!val) return -1;
+        return val.charCodeAt(0) - 65; // 'A' -> 0, 'B' -> 1, dst.
+      });
+
+      const essay_answers = Array.from({ length: totalEssay }).map((_, i) => ({
+        essay_number: i + 1,
+        user_answer: answers[`essay_${i}`] ?? "",
+      }));
+
+      const response = await fetch("/api/evaluate-quiz", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          study_kit_id: effectiveId,
+          mcq_answers,
+          essay_answers,
+        }),
+        signal: controller.signal,
+      });
+
+      const data: unknown = await response.json();
+
+      if (
+        !response.ok ||
+        typeof data !== "object" ||
+        data === null ||
+        !("quiz_result" in data)
+      ) {
+        throw new Error(
+          (typeof data === "object" &&
+          data !== null &&
+          "error" in data &&
+          typeof data.error === "string"
+            ? data.error
+            : null) ||
+            "Gagal mengevaluasi kuis. Periksa koneksi internet Anda dan coba lagi.",
+        );
+      }
+
+      // Berhasil dievaluasi, tutup modal dan langsung navigasikan ke halaman hasil kuis
+      setShowSubmitModal(false);
+      router.push(`/study-kit/${effectiveId}/hasil`);
+      router.refresh();
+    } catch (err: unknown) {
+      console.error("Gagal submit kuis:", err);
+      let errorMsg = "Terjadi gangguan saat mengevaluasi kuis.";
+      if (err instanceof Error) {
+        if (err.name === "AbortError") {
+          errorMsg =
+            "Waktu evaluasi kuis habis (timeout 30 detik). Silakan periksa kembali jawabanmu dan coba lagi.";
+        } else {
+          errorMsg = err.message;
+        }
+      }
+      setSubmitError(errorMsg);
+    } finally {
+      clearTimeout(timeoutId);
+      setIsSubmitting(false);
+    }
   }
 
   // Count answered items
@@ -90,7 +169,7 @@ export default function QuizEngine({
       {/* Back Link & Header Title */}
       <div className="flex flex-col gap-2">
         <Link
-          href={`/study-kit/${id}/ringkasan`}
+          href={`/study-kit/${effectiveId}/ringkasan`}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline w-fit"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -372,59 +451,87 @@ export default function QuizEngine({
         </aside>
       </div>
 
-      {/* Confirmation Modal Overlay (Ref: sattus&pemulihan.html State E) */}
+      {/* Confirmation & Evaluation Modal Overlay (Ref: sattus&pemulihan.html State E) */}
       {showSubmitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="bg-surface border border-border rounded-2xl max-w-md w-full p-6 sm:p-8 flex flex-col gap-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-start justify-between">
-              <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6" />
+            {isSubmitting ? (
+              <div className="flex flex-col items-center justify-center py-6 gap-4 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-teal-light text-teal flex items-center justify-center shadow-inner">
+                  <Loader2 className="w-7 h-7 animate-spin" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <h3 className="text-xl font-bold text-text-main">
+                    AI sedang mengoreksi jawaban esai Anda...
+                  </h3>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Mohon tunggu sebentar, sistem sedang menilai jawaban pilihan ganda dan menganalisis argumentasi esaimu untuk menyusun umpan balik akademis.
+                  </p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowSubmitModal(false)}
-                className="p-1 text-text-secondary hover:text-text-main rounded-lg hover:bg-background"
-                aria-label="Tutup"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            ) : (
+              <>
+                <div className="flex items-start justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmitError(null);
+                      setShowSubmitModal(false);
+                    }}
+                    className="p-1 text-text-secondary hover:text-text-main rounded-lg hover:bg-background"
+                    aria-label="Tutup"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
 
-            <div className="flex flex-col gap-1.5">
-              <h3 className="text-xl font-bold text-text-main">
-                Kumpulkan Jawaban Kuis?
-              </h3>
-              <p className="text-sm text-text-secondary leading-normal">
-                Kamu telah mengisi <strong>{answeredMcqCount} dari {totalMcq}</strong> soal PG dan <strong>{answeredEssayCount} dari {totalEssay}</strong> soal esai.
-              </p>
-            </div>
+                <div className="flex flex-col gap-1.5">
+                  <h3 className="text-xl font-bold text-text-main">
+                    Kumpulkan Jawaban Kuis?
+                  </h3>
+                  <p className="text-sm text-text-secondary leading-normal">
+                    Kamu telah mengisi <strong>{answeredMcqCount} dari {totalMcq}</strong> soal PG dan <strong>{answeredEssayCount} dari {totalEssay}</strong> soal esai.
+                  </p>
+                </div>
 
-            {answeredMcqCount < totalMcq || answeredEssayCount < totalEssay ? (
-              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-                <span>
-                  Masih ada soal yang belum kamu jawab. Jawaban yang kosong tidak akan mendapatkan poin nilai.
-                </span>
-              </div>
-            ) : null}
+                {submitError && (
+                  <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-900 text-xs flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
 
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowSubmitModal(false)}
-                className="flex-1 h-12 rounded-xl border border-border bg-surface text-primary font-semibold text-sm hover:bg-background transition-all"
-              >
-                Periksa Kembali
-              </button>
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={submitAnswers}
-                className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all shadow-sm flex items-center justify-center gap-2"
-              >
-                <span>Kumpulkan Sekarang</span>
-              </button>
-            </div>
+                {answeredMcqCount < totalMcq || answeredEssayCount < totalEssay ? (
+                  <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                    <span>
+                      Masih ada soal yang belum kamu jawab. Jawaban yang kosong tidak akan mendapatkan poin nilai.
+                    </span>
+                  </div>
+                ) : null}
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowSubmitModal(false)}
+                    className="flex-1 h-12 rounded-xl border border-border bg-surface text-primary font-semibold text-sm hover:bg-background transition-all"
+                  >
+                    Periksa Kembali
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={submitAnswers}
+                    className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <span>Kumpulkan Sekarang</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

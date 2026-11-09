@@ -48,6 +48,7 @@ export interface StudyKitContent {
     multiple_choice: McqQuestion[];
     essays: EssayQuestion[];
   };
+  last_evaluation?: QuizEvaluationResult["quiz_result"];
 }
 
 // Alias untuk fleksibilitas penamaan
@@ -75,6 +76,9 @@ export interface EssayReviewItem {
   topic: string;
   user_answer: string;
   ai_feedback: string;      // Umpan balik kualitatif dari Gemini AI
+  score?: number;           // Skor 0 - 100
+  strengths?: string;       // Kekuatan jawaban
+  improvements?: string;    // Poin perbaikan
 }
 
 export interface QuizEvaluationResult {
@@ -93,6 +97,9 @@ export interface QuizEvaluationResult {
     };
     mcq_reviews: McqReviewItem[];
     essay_reviews: EssayReviewItem[];
+    total_score?: number;       // Skor tertimbang total (0 - 100)
+    essay_score?: number;       // Skor rata-rata esai (0 - 100)
+    evaluated_at?: string;      // ISO timestamp saat evaluasi dilakukan
   };
 }
 
