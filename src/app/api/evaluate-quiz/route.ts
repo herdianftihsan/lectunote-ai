@@ -9,7 +9,11 @@ import {
   type EssayInputForEvaluation,
   type WrongMcqInput,
 } from "@/lib/gemini";
-import { getServiceSupabase } from "@/lib/supabase";
+import {
+  DEFAULT_PROFILE_ID,
+  getActiveProfile,
+  getServiceSupabase,
+} from "@/lib/supabase";
 import type {
   EssayQuestion,
   EssayReviewItem,
@@ -25,6 +29,7 @@ const UUID_REGEX =
 
 interface StudyKitDatabaseRow {
   id: string;
+  profile_id?: string | null;
   course_name: string;
   topic_title: string;
   kit_content: StudyKitContent | string | null;
@@ -94,7 +99,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const tFetchStart = performance.now();
   const { data: studyKitRow, error: fetchError } = await supabase
     .from("study_kits")
-    .select("id, course_name, topic_title, kit_content")
+    .select("id, profile_id, course_name, topic_title, kit_content")
     .eq("id", studyKitId)
     .maybeSingle<StudyKitDatabaseRow>();
   const tFetchEnd = performance.now();
@@ -208,7 +213,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     });
 
     // Panggil fungsi penilai esai (dengan Zero-Token Optimization & Hard Timeout 20s internal)
-    const evaluatedEssays = await evaluateEssays(essaysToGrade);
+    const activeProfile = await getActiveProfile().catch(() => null);
+    const evaluatedEssays = await evaluateEssays(essaysToGrade, {
+      programStudi: activeProfile?.program_studi,
+      university: activeProfile?.university,
+      semester: activeProfile?.semester,
+    });
     const tEssayEnd = performance.now();
 
     const essayReviews: EssayReviewItem[] = essays.map((eq, idx) => {
@@ -281,10 +291,11 @@ export async function POST(request: Request): Promise<NextResponse> {
         last_evaluation: evaluationResult.quiz_result,
       };
 
-      // Simpan perubahan ke study_kits (kit_content menyimpan last_evaluation lengkap)
+      // Simpan perubahan ke study_kits (kit_content menyimpan last_evaluation lengkap, plus last_score)
       const updatePayload: Record<string, unknown> = {
         quiz_status: "completed",
         kit_content: updatedKitContent,
+        last_score: mcqScore,
       };
 
       const tUpdateStart = performance.now();
@@ -316,9 +327,12 @@ export async function POST(request: Request): Promise<NextResponse> {
       const { error: activityLogError } = await supabase
         .from("activity_logs")
         .insert({
+          profile_id: studyKitRow.profile_id || DEFAULT_PROFILE_ID,
           study_kit_id: studyKitId,
           course_name: studyKitRow.course_name || "Materi Pembelajaran",
+          activity_type: "complete_quiz",
           action_description: `Kuis "${studyKitRow.course_name}" diselesaikan dengan skor ${mcqScore}/100`,
+          score: mcqScore,
         });
       if (activityLogError) {
         console.warn(

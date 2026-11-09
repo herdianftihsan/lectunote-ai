@@ -9,6 +9,7 @@ import { classifyGeminiError, generateStudyKit } from "@/lib/gemini";
 import { extractPdfText, PdfExtractionError } from "@/lib/pdf-extractor";
 import {
   DEFAULT_PROFILE_ID,
+  getActiveProfile,
   getServiceSupabase,
   SupabaseConfigError,
 } from "@/lib/supabase";
@@ -220,12 +221,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     /* 6. Gemini AI (Structured Output) ------------------------------------- */
     const startedAt = performance.now();
     let content;
+    const activeProfile = await getActiveProfile().catch(() => null);
     try {
-      content = await generateStudyKit({
-        courseName,
-        pdfText: extracted.formattedText,
-        notes,
-      });
+      content = await generateStudyKit(
+        {
+          courseName,
+          pdfText: extracted.formattedText,
+          notes,
+        },
+        {
+          programStudi: activeProfile?.program_studi,
+          university: activeProfile?.university,
+          semester: activeProfile?.semester,
+        },
+      );
     } catch (error: unknown) {
       const failure = classifyGeminiError(error);
       logError(`Gemini gagal [${failure.code}]: ${errorMessage(error)}`);
@@ -241,7 +250,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { data: inserted, error: insertError } = await supabase
       .from("study_kits")
       .insert({
-        profile_id: DEFAULT_PROFILE_ID,
+        profile_id: activeProfile?.id || DEFAULT_PROFILE_ID,
         course_name: courseName,
         topic_title: content.study_kit_metadata.topic_title,
         file_name: file.name,
@@ -282,7 +291,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { error: activityError } = await supabase
       .from("activity_logs")
       .insert({
+        profile_id: activeProfile?.id || DEFAULT_PROFILE_ID,
         study_kit_id: inserted.id,
+        course_name: courseName,
+        activity_type: "generate_kit",
         action_description: `Study Kit "${courseName}" dibuat dari ${file.name}`,
       });
     if (activityError) {

@@ -9,6 +9,8 @@ import type {
   StudyKitContent,
 } from "@/types/study-kit";
 
+export const instant = false;
+
 interface HasilKuisPageProps {
   params: Promise<{ id: string }>;
 }

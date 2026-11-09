@@ -4,6 +4,8 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import CopySummaryButton from "./CopySummaryButton";
 import { fetchStudyKitContent } from "@/lib/study-kit-content";
 
+export const instant = false;
+
 interface RingkasanPageProps {
   params: Promise<{ id: string }>;
 }

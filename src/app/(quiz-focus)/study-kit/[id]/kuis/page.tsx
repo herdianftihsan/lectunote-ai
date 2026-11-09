@@ -5,6 +5,8 @@ import QuizEngine, {
 } from "@/components/study-kit/QuizEngine";
 import { fetchStudyKitContent } from "@/lib/study-kit-content";
 
+export const instant = false;
+
 interface QuizPageProps {
   params: Promise<{ id: string }>;
 }

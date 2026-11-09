@@ -2,6 +2,8 @@
 import React, { Suspense } from "react";
 import FocusHeader from "./FocusHeader";
 
+export const instant = false;
+
 export default function QuizFocusLayout({
   children,
 }: {

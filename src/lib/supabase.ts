@@ -2,6 +2,7 @@
 // Supabase Client Initialization (Singleton, runtime-validated)
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { ProfileRow } from "@/types/database";
 
 /**
  * ID profil statis "Aditya Ramadhan" (PRD Section 4). Kolom `study_kits.profile_id`
@@ -143,4 +144,66 @@ export function getServerSupabase(): SupabaseClient {
     return getServiceSupabase();
   }
   return getSupabase();
+}
+
+/**
+ * Mengambil ID profil user yang sedang aktif.
+ * Saat ini mengembalikan DEFAULT_PROFILE_ID (MVP tanpa login).
+ * Siap diintegrasikan dengan Supabase Auth / auth cookies di masa depan.
+ */
+export async function getActiveProfileId(): Promise<string> {
+  return DEFAULT_PROFILE_ID;
+}
+
+/**
+ * Mengambil baris data profil user aktif dari tabel `profiles`.
+ * Jika baris profil belum tersedia di database, fungsi ini melakukan
+ * auto-seed / upsert profil default agar aplikasi tidak crash.
+ */
+export async function getActiveProfile(): Promise<ProfileRow> {
+  if (typeof window !== "undefined") {
+    throw new SupabaseConfigError(
+      "getActiveProfile() tidak boleh dipanggil di sisi browser.",
+    );
+  }
+
+  const profileId = await getActiveProfileId();
+  const supabase = getServerSupabase();
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", profileId)
+    .maybeSingle<ProfileRow>();
+
+  if (!error && profile) {
+    return profile;
+  }
+
+  // Auto-seed profil default jika belum ada di database
+  const defaultProfileData: Partial<ProfileRow> = {
+    id: profileId,
+    full_name: "Aditya Ramadhan",
+    email: "aditya.r@example.com",
+    role_title: "Mahasiswa teknik",
+    major: "Teknik Informatika",
+    university: "Politeknik / Universitas",
+    program_studi: "Teknik Informatika",
+    semester: 5,
+    weekly_target: 4,
+  };
+
+  const { data: seededProfile, error: seedError } = await getServiceSupabase()
+    .from("profiles")
+    .upsert(defaultProfileData, { onConflict: "id" })
+    .select("*")
+    .single<ProfileRow>();
+
+  if (seedError || !seededProfile) {
+    throw new Error(
+      `Gagal memuat profil aktif dari database: ${seedError?.message || error?.message || "Unknown error"}`,
+    );
+  }
+
+  return seededProfile;
 }

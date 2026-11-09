@@ -5,6 +5,8 @@ import StudyKitHeader from "./StudyKitHeader";
 import StudyKitLayoutShell from "@/components/layout/StudyKitLayoutShell";
 import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
 
+export const instant = false;
+
 interface StudyKitHeaderRecord {
   course_name: string;
   topic_title: string;

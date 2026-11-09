@@ -1,13 +1,9 @@
 // src/app/(dashboard)/layout.tsx
 import React, { Suspense } from "react";
-import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
+import { getActiveProfile } from "@/lib/supabase";
 import DashboardNavigation from "@/components/layout/DashboardNavigation";
 
-interface DashboardProfile {
-  full_name: string;
-  role_title: string | null;
-  semester: number | null;
-}
+export const instant = false;
 
 export default function DashboardLayout({
   children,
@@ -32,14 +28,11 @@ async function DashboardShell({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: profile, error } = await getServerSupabase()
-    .from("profiles")
-    .select("full_name, role_title, semester")
-    .eq("id", DEFAULT_PROFILE_ID)
-    .maybeSingle<DashboardProfile>();
-
-  if (error) {
-    throw new Error("Gagal memuat profil ruang belajar.", { cause: error });
+  let profile = null;
+  try {
+    profile = await getActiveProfile();
+  } catch (error) {
+    console.warn("[DashboardLayout] Gagal memuat profil aktif:", error);
   }
 
   return (

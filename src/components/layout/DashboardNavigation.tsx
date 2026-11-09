@@ -16,8 +16,9 @@ import {
 interface DashboardNavigationProps {
   profile: {
     full_name: string;
-    role_title: string | null;
-    semester: number | null;
+    role_title?: string | null;
+    program_studi?: string | null;
+    semester?: number | null;
   } | null;
   children: React.ReactNode;
 }
@@ -155,7 +156,9 @@ export default function DashboardNavigation({
             {profile?.full_name || "Aditya Ramadhan"}
           </div>
           <div className="text-[13px] font-medium text-text-muted">
-            {profile?.role_title || "Mahasiswa teknik"}
+            {profile?.program_studi
+              ? `Mahasiswa ${profile.program_studi}`
+              : profile?.role_title || "Mahasiswa teknik"}
           </div>
           <div className="text-xs text-text-muted mt-1">
             Ringkas. Pahami. Uji dirimu.

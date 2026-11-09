@@ -106,35 +106,23 @@ export interface QuizEvaluationResult {
 // Alias untuk fleksibilitas penamaan
 export type QuizEvaluationResponse = QuizEvaluationResult;
 
-// Database Records (Supabase)
-export type QuizStatus = "not-started" | "unfinished" | "completed";
+// Re-export Single Source of Truth dari database.ts
+export type {
+  QuizStatus,
+  ActivityType,
+  ProfileRow,
+  ProfileInsert,
+  ProfileUpdate,
+  StudyKitRow,
+  StudyKitInsert,
+  StudyKitUpdate,
+  ActivityLogRow,
+  ActivityLogInsert,
+  ActivityLogUpdate,
+  Database,
+} from "./database";
 
-export interface StudyKitRecord {
-  id: string;
-  profile_id: string;
-  course_name: string;
-  topic_title: string;
-  file_name: string;
-  file_size_bytes: number | null;
-  storage_path: string | null;
-  user_notes: string | null;
-  quiz_status: QuizStatus;
-  kit_content: StudyKitContent | null;
-  created_at: string;
-}
-
-export interface ProfileRecord {
-  id: string;
-  full_name: string;
-  role_title: string | null;
-  major: string | null;
-  semester: number | null;
-  created_at: string;
-}
-
-export interface ActivityLogRecord {
-  id: string;
-  study_kit_id: string | null;
-  action_description: string;
-  created_at: string;
-}
+// Alias untuk kompatibilitas ke belakang (backward-compatibility)
+export type StudyKitRecord = import("./database").StudyKitRow;
+export type ProfileRecord = import("./database").ProfileRow;
+export type ActivityLogRecord = import("./database").ActivityLogRow;
