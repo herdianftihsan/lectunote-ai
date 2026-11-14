@@ -3,7 +3,10 @@
 
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { DEFAULT_PROFILE_ID, getServiceSupabase } from "@/lib/supabase";
+import {
+  getAuthenticatedProfileId,
+  getServiceSupabase,
+} from "@/lib/supabase";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -24,6 +27,11 @@ export async function GET(
   _request: Request,
   { params }: RouteParams,
 ): Promise<NextResponse> {
+  const activeProfileId = await getAuthenticatedProfileId();
+  if (!activeProfileId) {
+    return NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 });
+  }
+
   const { id } = await params;
 
   if (!id || !UUID_REGEX.test(id)) {
@@ -54,7 +62,7 @@ export async function GET(
     .from("study_kits")
     .select("id, profile_id, course_name, topic_title, file_name, file_size_bytes, storage_path, quiz_status, kit_content, created_at")
     .eq("id", id)
-    .eq("profile_id", DEFAULT_PROFILE_ID)
+    .eq("profile_id", activeProfileId)
     .maybeSingle();
 
   if (error) {
@@ -82,6 +90,11 @@ export async function DELETE(
   _request: Request,
   { params }: RouteParams,
 ): Promise<NextResponse> {
+  const activeProfileId = await getAuthenticatedProfileId();
+  if (!activeProfileId) {
+    return NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 });
+  }
+
   const { id } = await params;
 
   // 1. Validasi format UUID
@@ -114,7 +127,7 @@ export async function DELETE(
     .from("study_kits")
     .select("id, profile_id, storage_path, course_name, topic_title")
     .eq("id", id)
-    .eq("profile_id", DEFAULT_PROFILE_ID)
+    .eq("profile_id", activeProfileId)
     .maybeSingle<StudyKitDeleteTarget>();
 
   if (fetchError) {
@@ -188,7 +201,7 @@ export async function DELETE(
     .from("study_kits")
     .delete()
     .eq("id", id)
-    .eq("profile_id", DEFAULT_PROFILE_ID);
+    .eq("profile_id", activeProfileId);
 
   if (deleteError) {
     console.error(

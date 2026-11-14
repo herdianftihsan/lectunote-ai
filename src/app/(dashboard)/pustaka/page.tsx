@@ -1,7 +1,7 @@
 // src/app/(dashboard)/pustaka/page.tsx
 // Server Component for Pustaka Materi (1:1 _html_design_reference/pustaka-materi.html)
 
-import { DEFAULT_PROFILE_ID, getServiceSupabase } from "@/lib/supabase";
+import { getActiveProfileId, getServiceSupabase } from "@/lib/supabase";
 import LibraryClient, {
   type LibraryStudyKit,
   type ActivityLogItem,
@@ -23,6 +23,7 @@ interface RawStudyKitRow {
 
 export default async function PustakaPage() {
   const supabase = getServiceSupabase();
+  const profileId = await getActiveProfileId();
 
   // 1. Fetch study_kits dan activity_logs secara paralel
   const [kitsResult, logsResult] = await Promise.all([
@@ -31,12 +32,13 @@ export default async function PustakaPage() {
       .select(
         "id, course_name, topic_title, file_name, file_size_bytes, quiz_status, kit_content, created_at",
       )
-      .eq("profile_id", DEFAULT_PROFILE_ID)
+      .eq("profile_id", profileId)
       .order("created_at", { ascending: false })
       .returns<RawStudyKitRow[]>(),
     supabase
       .from("activity_logs")
       .select("id, study_kit_id, action_description, created_at")
+      .eq("profile_id", profileId)
       .order("created_at", { ascending: false })
       .limit(10)
       .returns<Omit<ActivityLogItem, "course_name">[]>(),

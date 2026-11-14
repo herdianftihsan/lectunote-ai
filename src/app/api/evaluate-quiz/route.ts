@@ -10,8 +10,8 @@ import {
   type WrongMcqInput,
 } from "@/lib/gemini";
 import {
-  DEFAULT_PROFILE_ID,
   getActiveProfile,
+  getAuthenticatedProfileId,
   getServiceSupabase,
 } from "@/lib/supabase";
 import type {
@@ -37,6 +37,14 @@ interface StudyKitDatabaseRow {
 
 export async function POST(request: Request): Promise<NextResponse> {
   const tStart = performance.now();
+  const profileId = await getAuthenticatedProfileId();
+  if (!profileId) {
+    return NextResponse.json(
+      { error: "Sesi login tidak valid.", error_code: "UNAUTHENTICATED" },
+      { status: 401 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -101,6 +109,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     .from("study_kits")
     .select("id, profile_id, course_name, topic_title, kit_content")
     .eq("id", studyKitId)
+    .eq("profile_id", profileId)
     .maybeSingle<StudyKitDatabaseRow>();
   const tFetchEnd = performance.now();
 
@@ -327,7 +336,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       const { error: activityLogError } = await supabase
         .from("activity_logs")
         .insert({
-          profile_id: studyKitRow.profile_id || DEFAULT_PROFILE_ID,
+          profile_id: studyKitRow.profile_id || profileId,
           study_kit_id: studyKitId,
           course_name: studyKitRow.course_name || "Materi Pembelajaran",
           activity_type: "complete_quiz",

@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
+import { getActiveProfileId, getServerSupabase } from "@/lib/supabase";
 import type {
   QuizEvaluationResult,
   StudyKitContent,
@@ -29,17 +29,19 @@ interface ProfileQueryResult {
 export default async function HasilKuisPage({ params }: HasilKuisPageProps) {
   const { id } = await params;
   const supabase = getServerSupabase();
+  const profileId = await getActiveProfileId();
 
   const [studyKitResult, profileResult] = await Promise.all([
     supabase
       .from("study_kits")
       .select("id, course_name, topic_title, kit_content")
       .eq("id", id)
+      .eq("profile_id", profileId)
       .maybeSingle<StudyKitQueryResult>(),
     supabase
       .from("profiles")
       .select("full_name")
-      .eq("id", DEFAULT_PROFILE_ID)
+      .eq("id", profileId)
       .maybeSingle<ProfileQueryResult>(),
   ]);
 

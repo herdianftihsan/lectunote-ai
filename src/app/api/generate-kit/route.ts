@@ -8,8 +8,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { classifyGeminiError, generateStudyKit } from "@/lib/gemini";
 import { extractPdfText, PdfExtractionError } from "@/lib/pdf-extractor";
 import {
-  DEFAULT_PROFILE_ID,
   getActiveProfile,
+  getAuthenticatedProfileId,
   getServiceSupabase,
   SupabaseConfigError,
 } from "@/lib/supabase";
@@ -88,6 +88,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let supabase: SupabaseClient | null = null;
 
   try {
+    const activeProfileId = await getAuthenticatedProfileId();
+    if (!activeProfileId) {
+      return fail(401, "UNAUTHENTICATED", "Silakan masuk untuk membuat Study Kit.");
+    }
+
     /* 1. Terima input ------------------------------------------------------ */
     let formData: FormData;
     try {
@@ -165,7 +170,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     /* 3. Upload ke Supabase Storage ---------------------------------------- */
     supabase = getServiceSupabase();
-    const storagePath = `${DEFAULT_PROFILE_ID}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${toSafeStorageName(file.name)}`;
+    const storagePath = `${activeProfileId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${toSafeStorageName(file.name)}`;
 
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
@@ -250,7 +255,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { data: inserted, error: insertError } = await supabase
       .from("study_kits")
       .insert({
-        profile_id: activeProfile?.id || DEFAULT_PROFILE_ID,
+        profile_id: activeProfileId,
         course_name: courseName,
         topic_title: content.study_kit_metadata.topic_title,
         file_name: file.name,
@@ -279,7 +284,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         columnMissing
           ? "Kolom study_kits.kit_content belum ada. Jalankan di Supabase SQL Editor: ALTER TABLE study_kits ADD COLUMN kit_content jsonb;"
           : fkViolation
-            ? "Profil default belum ada di database. Buka /api/test-supabase untuk men-seed profil, lalu coba lagi."
+            ? "Profil akun belum tersedia di database. Silakan coba lagi atau hubungi administrator."
             : "Study Kit berhasil dibuat tetapi gagal disimpan ke database. Silakan coba lagi.",
       );
     }
@@ -291,7 +296,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { error: activityError } = await supabase
       .from("activity_logs")
       .insert({
-        profile_id: activeProfile?.id || DEFAULT_PROFILE_ID,
+        profile_id: activeProfileId,
         study_kit_id: inserted.id,
         course_name: courseName,
         activity_type: "generate_kit",

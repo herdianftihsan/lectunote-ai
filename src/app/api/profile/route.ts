@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import {
   getActiveProfile,
-  getActiveProfileId,
+  getAuthenticatedProfileId,
   getServerSupabase,
   getServiceSupabase,
 } from "@/lib/supabase";
@@ -15,6 +15,10 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function GET(): Promise<NextResponse> {
   try {
+    if (!(await getAuthenticatedProfileId())) {
+      return NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 });
+    }
+
     const profile = await getActiveProfile();
     const supabase = getServerSupabase();
 
@@ -61,6 +65,11 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
 async function handleUpdateProfile(request: NextRequest): Promise<NextResponse> {
   try {
+    const profileId = await getAuthenticatedProfileId();
+    if (!profileId) {
+      return NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 });
+    }
+
     const body = await request.json();
     if (!body || typeof body !== "object") {
       return NextResponse.json(
@@ -152,7 +161,6 @@ async function handleUpdateProfile(request: NextRequest): Promise<NextResponse> 
     }
 
     // 7. Simpan ke database Supabase
-    const profileId = await getActiveProfileId();
     const serviceSupabase = getServiceSupabase();
 
     const updatePayload: Partial<ProfileRow> = {

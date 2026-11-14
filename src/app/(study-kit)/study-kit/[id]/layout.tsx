@@ -3,7 +3,11 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import StudyKitHeader from "./StudyKitHeader";
 import StudyKitLayoutShell from "@/components/layout/StudyKitLayoutShell";
-import { DEFAULT_PROFILE_ID, getServerSupabase } from "@/lib/supabase";
+import {
+  getActiveProfile,
+  getActiveProfileId,
+  getServerSupabase,
+} from "@/lib/supabase";
 
 export const instant = false;
 
@@ -12,11 +16,6 @@ interface StudyKitHeaderRecord {
   topic_title: string;
   file_name: string;
   file_size_bytes: number | null;
-}
-
-interface StudyKitProfile {
-  full_name: string;
-  role_title: string | null;
 }
 
 interface StudyKitLayoutProps {
@@ -47,17 +46,15 @@ async function StudyKitLayoutContent({
 }: StudyKitLayoutProps) {
   const { id } = await params;
   const supabase = getServerSupabase();
+  const profileId = await getActiveProfileId();
   const [studyKitResult, profileResult] = await Promise.all([
     supabase
       .from("study_kits")
       .select("course_name, topic_title, file_name, file_size_bytes")
       .eq("id", id)
+      .eq("profile_id", profileId)
       .maybeSingle<StudyKitHeaderRecord>(),
-    supabase
-      .from("profiles")
-      .select("full_name, role_title")
-      .eq("id", DEFAULT_PROFILE_ID)
-      .maybeSingle<StudyKitProfile>(),
+    getActiveProfile(),
   ]);
 
   if (studyKitResult.error) {
@@ -66,15 +63,11 @@ async function StudyKitLayoutContent({
       cause: studyKitResult.error,
     });
   }
-  if (profileResult.error) {
-    console.warn("[StudyKitLayout] Gagal memuat profil:", profileResult.error);
-  }
-
   if (!studyKitResult.data) {
     notFound();
   }
   const studyKit = studyKitResult.data;
-  const profile = profileResult.data;
+  const profile = profileResult;
 
   return (
     <StudyKitLayoutShell profile={profile}>

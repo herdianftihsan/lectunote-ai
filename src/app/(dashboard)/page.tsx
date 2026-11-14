@@ -15,8 +15,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
-  DEFAULT_PROFILE_ID,
   getActiveProfile,
+  getActiveProfileId,
   getServiceSupabase,
 } from "@/lib/supabase";
 import type { StudyKitContent } from "@/types/study-kit";
@@ -76,6 +76,7 @@ function formatIndonesianTime(dateStr: string): string {
 
 export default async function DashboardPage() {
   const supabase = getServiceSupabase();
+  const profileId = await getActiveProfileId();
 
   // 1. Fetch seluruh data secara paralel dengan Service Role Supabase
   const [kitsResult, profile, logsResult] = await Promise.all([
@@ -84,12 +85,13 @@ export default async function DashboardPage() {
       .select(
         "id, course_name, topic_title, file_name, file_size_bytes, quiz_status, kit_content, created_at",
       )
-      .eq("profile_id", DEFAULT_PROFILE_ID)
+      .eq("profile_id", profileId)
       .order("created_at", { ascending: false }),
-    getActiveProfile().catch(() => null),
+    getActiveProfile(),
     supabase
       .from("activity_logs")
       .select("id, study_kit_id, action_description, created_at")
+      .eq("profile_id", profileId)
       .order("created_at", { ascending: false })
       .limit(6)
       .returns<DashboardActivityLog[]>(),

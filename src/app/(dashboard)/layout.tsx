@@ -28,12 +28,7 @@ async function DashboardShell({
 }: {
   children: React.ReactNode;
 }) {
-  let profile = null;
-  try {
-    profile = await getActiveProfile();
-  } catch (error) {
-    console.warn("[DashboardLayout] Gagal memuat profil aktif:", error);
-  }
+  const profile = await getActiveProfile();
 
   return (
     <DashboardNavigation profile={profile}>

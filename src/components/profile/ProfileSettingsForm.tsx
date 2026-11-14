@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import type { ProfileRow } from "@/types/database";
 
 interface ProfileSettingsFormProps {
@@ -31,6 +32,7 @@ export default function ProfileSettingsForm({
 
   // Submission State
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -114,6 +116,19 @@ export default function ProfileSettingsForm({
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (err: unknown) {
+      console.error("Gagal logout:", err);
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -502,6 +517,25 @@ export default function ProfileSettingsForm({
           <div className="text-xs text-text-secondary leading-relaxed pt-1">
             Ini usulan pengalaman pengguna, bukan jaminan keamanan atau retensi data.
           </div>
+        </div>
+
+        {/* Card 3: Sesi Akun & Logout */}
+        <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <h2 className="text-lg font-semibold text-text-main leading-6">
+            Sesi &amp; Keamanan Akun
+          </h2>
+          <p className="text-sm text-text-secondary leading-normal">
+            Keluar dari sesi ruang belajar ini untuk mengamankan akun dan data Anda pada perangkat bersama.
+          </p>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-fit mt-1 px-4 h-10 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold rounded-xl inline-flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-60"
+          >
+            <LogOut className="w-4 h-4 text-red-600" />
+            <span>{isLoggingOut ? "Keluar..." : "Keluar dari Akun"}</span>
+          </button>
         </div>
       </div>
     </div>

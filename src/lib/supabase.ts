@@ -3,6 +3,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { ProfileRow } from "@/types/database";
+import { getSessionProfileId, SESSION_COOKIE_NAME } from "@/lib/session";
 
 /**
  * ID profil statis "Aditya Ramadhan" (PRD Section 4). Kolom `study_kits.profile_id`
@@ -147,18 +148,32 @@ export function getServerSupabase(): SupabaseClient {
 }
 
 /**
+ * Mengembalikan profile_id dari cookie sesi bertanda tangan jika user sudah login.
+ * Mengembalikan null jika belum ada sesi terautentikasi.
+ */
+export async function getAuthenticatedProfileId(): Promise<string | null> {
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  return getSessionProfileId(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+}
+
+/**
  * Mengambil ID profil user yang sedang aktif.
- * Saat ini mengembalikan DEFAULT_PROFILE_ID (MVP tanpa login).
- * Siap diintegrasikan dengan Supabase Auth / auth cookies di masa depan.
+ * Mengutamakan user yang login (melalui cookie sesi bertanda tangan).
+ * Jika belum login / fallback, mengembalikan DEFAULT_PROFILE_ID.
  */
 export async function getActiveProfileId(): Promise<string> {
+  const authenticatedId = await getAuthenticatedProfileId();
+  if (authenticatedId) {
+    return authenticatedId;
+  }
   return DEFAULT_PROFILE_ID;
 }
 
 /**
  * Mengambil baris data profil user aktif dari tabel `profiles`.
- * Jika baris profil belum tersedia di database, fungsi ini melakukan
- * auto-seed / upsert profil default agar aplikasi tidak crash.
+ * Jika profil belum tersedia (misal akun demo baru atau user baru terdaftar),
+ * fungsi ini melakukan auto-seed / sinkronisasi dari auth.users secara otomatis.
  */
 export async function getActiveProfile(): Promise<ProfileRow> {
   if (typeof window !== "undefined") {
@@ -180,30 +195,69 @@ export async function getActiveProfile(): Promise<ProfileRow> {
     return profile;
   }
 
-  // Auto-seed profil default jika belum ada di database
-  const defaultProfileData: Partial<ProfileRow> = {
-    id: profileId,
-    full_name: "Aditya Ramadhan",
-    email: "aditya.r@example.com",
-    role_title: "Mahasiswa teknik",
-    major: "Teknik Informatika",
-    university: "Politeknik / Universitas",
-    program_studi: "Teknik Informatika",
-    semester: 5,
-    weekly_target: 4,
-  };
+  // Jika profileId adalah DEFAULT_PROFILE_ID, lakukan auto-seed profil demo
+  if (profileId === DEFAULT_PROFILE_ID) {
+    const defaultProfileData: Partial<ProfileRow> = {
+      id: profileId,
+      full_name: "Aditya Ramadhan",
+      email: "aditya.r@example.com",
+      role_title: "Mahasiswa teknik",
+      major: "Teknik Informatika",
+      university: "Politeknik / Universitas",
+      program_studi: "Teknik Informatika",
+      semester: 5,
+      weekly_target: 4,
+    };
 
-  const { data: seededProfile, error: seedError } = await getServiceSupabase()
-    .from("profiles")
-    .upsert(defaultProfileData, { onConflict: "id" })
-    .select("*")
-    .single<ProfileRow>();
+    const { data: seededProfile, error: seedError } = await getServiceSupabase()
+      .from("profiles")
+      .upsert(defaultProfileData, { onConflict: "id" })
+      .select("*")
+      .single<ProfileRow>();
 
-  if (seedError || !seededProfile) {
-    throw new Error(
-      `Gagal memuat profil aktif dari database: ${seedError?.message || error?.message || "Unknown error"}`,
-    );
+    if (!seedError && seededProfile) {
+      return seededProfile;
+    }
   }
 
-  return seededProfile;
+  // Jika akun terdaftar via auth.users tapi profil belum ter-seed:
+  try {
+    const serviceSupabase = getServiceSupabase();
+    const { data: userData } = await serviceSupabase.auth.admin.getUserById(profileId);
+    if (userData?.user) {
+      const meta = userData.user.user_metadata || {};
+      const fallbackProfile: Partial<ProfileRow> = {
+        id: profileId,
+        full_name:
+          (meta.full_name as string) ||
+          userData.user.email?.split("@")[0] ||
+          "Mahasiswa",
+        email: userData.user.email || null,
+        university: (meta.university as string) || null,
+        program_studi: (meta.program_studi as string) || "Teknik Informatika",
+        major: (meta.program_studi as string) || "Teknik Informatika",
+        role_title: meta.program_studi
+          ? `Mahasiswa ${meta.program_studi}`
+          : "Mahasiswa teknik",
+        semester: Number(meta.semester) || 1,
+        weekly_target: 5,
+      };
+
+      const { data: syncedProfile, error: syncError } = await serviceSupabase
+        .from("profiles")
+        .upsert(fallbackProfile, { onConflict: "id" })
+        .select("*")
+        .single<ProfileRow>();
+
+      if (!syncError && syncedProfile) {
+        return syncedProfile;
+      }
+    }
+  } catch (authErr) {
+    console.warn("[getActiveProfile] Gagal lookup auth user:", authErr);
+  }
+
+  throw new Error(
+    `Gagal memuat profil aktif dari database (ID: ${profileId}): ${error?.message || "Profile not found"}`,
+  );
 }

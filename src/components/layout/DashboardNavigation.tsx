@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   UploadCloud,
@@ -11,6 +11,7 @@ import {
   Bell,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 
 interface DashboardNavigationProps {
@@ -28,7 +29,22 @@ export default function DashboardNavigation({
   children,
 }: DashboardNavigationProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const navItems = [
     {
@@ -150,19 +166,29 @@ export default function DashboardNavigation({
           </nav>
         </div>
 
-        {/* Sidebar Footer User Info */}
-        <div className="pt-5 border-t border-border flex flex-col gap-1">
-          <div className="text-sm font-semibold text-text-main leading-snug">
-            {profile?.full_name || "Aditya Ramadhan"}
+        {/* Sidebar Footer User Info & Logout */}
+        <div className="pt-4 border-t border-border flex flex-col gap-2.5">
+          <div className="flex flex-col gap-0.5">
+            <div className="text-sm font-semibold text-text-main leading-snug">
+              {profile?.full_name || "Aditya Ramadhan"}
+            </div>
+            <div className="text-[13px] font-medium text-text-muted truncate">
+              {profile?.program_studi
+                ? `Mahasiswa ${profile.program_studi}`
+                : profile?.role_title || "Mahasiswa teknik"}
+            </div>
           </div>
-          <div className="text-[13px] font-medium text-text-muted">
-            {profile?.program_studi
-              ? `Mahasiswa ${profile.program_studi}`
-              : profile?.role_title || "Mahasiswa teknik"}
-          </div>
-          <div className="text-xs text-text-muted mt-1">
-            Ringkas. Pahami. Uji dirimu.
-          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex items-center gap-2 text-xs font-semibold text-text-secondary hover:text-red-600 transition-colors w-fit pt-0.5 cursor-pointer disabled:opacity-50"
+            title="Keluar dari akun"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>{isLoggingOut ? "Keluar..." : "Keluar Akun"}</span>
+          </button>
         </div>
       </aside>
 
