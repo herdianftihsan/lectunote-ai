@@ -4,11 +4,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { setSessionCookie } from "@/lib/session";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const clientIp = getClientIp(request);
+    const rateCheck = checkRateLimit(`auth-register:${clientIp}`, 10, 5 * 60 * 1000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "Terlalu banyak permintaan dalam waktu singkat. Silakan tunggu beberapa saat sebelum mencoba lagi.",
+          error_code: "RATE_LIMIT_EXCEEDED",
+          retry_after_seconds: rateCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateCheck.retryAfterSeconds),
+          },
+        },
+      );
+    }
+
     const body = await request.json();
     const { full_name, email, password, university, program_studi, semester } =
       body as {

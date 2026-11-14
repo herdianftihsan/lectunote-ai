@@ -9,8 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LectuNote AI - Smart Active-Recall Study Assistant",
-  description: "Ubah slide & catatan kuliah jadi ringkasan terstruktur, flashcard interaktif, dan simulasi kuis ujian dalam hitungan detik.",
+  title: "LectuNote AI — Asisten Belajar & Evaluasi Materi Kuliah",
+  description:
+    "Ubah slide kuliah, rekaman suara dosen, dan catatan menjadi Study Kit komprehensif: ringkasan terstruktur, flashcard interaktif active recall, serta simulasi kuis ujian otomatis berbasis AI.",
 };
 
 export default function RootLayout({

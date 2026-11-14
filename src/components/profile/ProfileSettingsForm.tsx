@@ -165,7 +165,7 @@ export default function ProfileSettingsForm({
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+              className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
               placeholder="Aditya Ramadhan"
             />
           </div>
@@ -179,7 +179,7 @@ export default function ProfileSettingsForm({
               id="emailAddr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+              className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
               placeholder="aditya.r@example.com"
             />
           </div>
@@ -194,8 +194,8 @@ export default function ProfileSettingsForm({
                 id="majorStudy"
                 value={programStudi}
                 onChange={(e) => setProgramStudi(e.target.value)}
-                className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
-                placeholder="Teknik Informatika"
+                className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
+                placeholder="Contoh: Teknik Informatika"
               />
             </div>
 
@@ -210,7 +210,7 @@ export default function ProfileSettingsForm({
                 max={14}
                 value={semester}
                 onChange={(e) => setSemester(e.target.value)}
-                className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+                className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
                 placeholder="5"
               />
             </div>

@@ -3,6 +3,7 @@
 // Mengacu 1:1 pada _html_design_reference/pengaturan&pofile.html
 
 import React, { Suspense } from "react";
+import { connection } from "next/server";
 import { getActiveProfile } from "@/lib/supabase";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
 
@@ -23,6 +24,7 @@ export default function PengaturanPage() {
 }
 
 async function PengaturanContent() {
+  await connection();
   const profile = await getActiveProfile();
 
   return (

@@ -2,7 +2,7 @@
 // Halaman Buat Study Kit Baru & State Pemrosesan AI
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,9 +15,12 @@ import {
   LoaderCircle,
   Clock,
   CheckCircle2,
+  Volume2,
+  Square,
 } from "lucide-react";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_AUDIO_BYTES = 10 * 1024 * 1024; // 10 MB
 const MAX_COURSE_NAME_LENGTH = 100;
 const MAX_NOTES_LENGTH = 20_000;
 const REQUEST_TIMEOUT_MS = 190_000;
@@ -61,6 +64,165 @@ export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const isSubmittingRef = useRef(false);
 
+  // Audio / Voice Note states & refs
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
+  const [isAudioRecording, setIsAudioRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Bersihkan ObjectURL & media stream saat unmount atau audio diganti
+  useEffect(() => {
+    return () => {
+      if (audioPreviewUrl) {
+        URL.revokeObjectURL(audioPreviewUrl);
+      }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
+  }, [audioPreviewUrl]);
+
+  const clearAudio = () => {
+    if (audioPreviewUrl) {
+      URL.revokeObjectURL(audioPreviewUrl);
+    }
+    setAudioPreviewUrl(null);
+    setAudioFile(null);
+    if (isAudioRecording) {
+      stopRecording();
+    }
+  };
+
+  const handleAudioFileSelected = (file: File | null) => {
+    if (!file) return;
+    if (file.size > MAX_AUDIO_BYTES) {
+      setErrorMessage(
+        `Ukuran berkas audio ${formatFileSize(file.size)} melebihi batas 10 MB.`,
+      );
+      return;
+    }
+    const isValidAudioType =
+      file.type.startsWith("audio/") ||
+      /\.(mp3|wav|m4a|mp4|webm|ogg|aac|flac)$/i.test(file.name);
+    if (!isValidAudioType) {
+      setErrorMessage(
+        "Format berkas audio belum didukung. Harap pilih berkas MP3, M4A, WAV, WebM, atau OGG.",
+      );
+      return;
+    }
+    clearAudio();
+    const url = URL.createObjectURL(file);
+    setAudioPreviewUrl(url);
+    setAudioFile(file);
+    setErrorMessage(null);
+  };
+
+  const startRecording = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setErrorMessage("Browser Anda tidak mendukung perekaman mikrofon.");
+        return;
+      }
+      clearAudio();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      audioChunksRef.current = [];
+
+      let mimeType = "";
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+        mimeType = "audio/webm;codecs=opus";
+      } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+        mimeType = "audio/webm";
+      } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        mimeType = "audio/mp4";
+      } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+        mimeType = "audio/ogg";
+      }
+
+      const mediaRecorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType } : undefined,
+      );
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const recordedMime = mediaRecorder.mimeType || "audio/webm";
+        const blob = new Blob(audioChunksRef.current, { type: recordedMime });
+        const extension = recordedMime.includes("mp4")
+          ? "m4a"
+          : recordedMime.includes("ogg")
+            ? "ogg"
+            : "webm";
+        const file = new File([blob], `rekaman-suara.${extension}`, {
+          type: recordedMime,
+        });
+
+        if (file.size > MAX_AUDIO_BYTES) {
+          setErrorMessage(
+            "Ukuran rekaman audio melebihi batas 10 MB. Coba durasi rekaman yang lebih singkat.",
+          );
+          return;
+        }
+
+        const url = URL.createObjectURL(file);
+        setAudioPreviewUrl(url);
+        setAudioFile(file);
+
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+          mediaStreamRef.current = null;
+        }
+      };
+
+      mediaRecorder.start(1000);
+      setIsAudioRecording(true);
+      setRecordingDuration(0);
+
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Gagal memulai perekaman:", err);
+      setErrorMessage(
+        "Tidak dapat mengakses mikrofon. Pastikan izin mikrofon telah diberikan di browser.",
+      );
+    }
+  };
+
+  const stopRecording = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      mediaRecorderRef.current.stop();
+    }
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    setIsAudioRecording(false);
+  };
+
+  const formatDuration = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
   const handleFileSelected = (file: File | null) => {
     if (!file) return;
     const fileError = validateFile(file);
@@ -102,6 +264,9 @@ export default function UploadPage() {
       formData.append("file", selectedFile);
       formData.append("course_name", trimmedCourseName);
       formData.append("notes", notes.trim());
+      if (audioFile) {
+        formData.append("audio_file", audioFile);
+      }
 
       const response = await fetch("/api/generate-kit", {
         method: "POST",
@@ -193,13 +358,17 @@ export default function UploadPage() {
         {/* Header Title Area */}
         <div className="flex flex-col gap-2">
           <div className="text-sm font-semibold text-primary">
-            02 Proses AI · Membaca PDF &amp; menyusun materi
+            {audioFile
+              ? "02 Proses AI · Membaca PDF, audio & menyusun materi"
+              : "02 Proses AI · Membaca PDF & menyusun materi"}
           </div>
           <h1 className="text-3xl sm:text-[32px] font-bold text-text-main leading-tight tracking-tight">
             Sedang Menyiapkan Study Kit
           </h1>
           <p className="text-base text-text-secondary leading-normal">
-            AI sedang membaca dokumen dan catatanmu. Proses ini biasanya membutuhkan waktu sekitar 20–40 detik.
+            {audioFile
+              ? "AI sedang membaca dokumen, menganalisis audio dosen, dan catatanmu. Proses ini membutuhkan waktu sekitar 20–45 detik."
+              : "AI sedang membaca dokumen dan catatanmu. Proses ini biasanya membutuhkan waktu sekitar 20–40 detik."}
           </p>
         </div>
 
@@ -487,14 +656,128 @@ export default function UploadPage() {
               maxLength={MAX_COURSE_NAME_LENGTH}
               onChange={(e) => setCourseName(e.target.value)}
               placeholder="Contoh: Jaringan Komputer"
-              className="w-full h-12 px-4 border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary transition-colors"
+              className="w-full h-12 px-4 border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
             />
             <div className="text-xs text-text-secondary">
               Nama ini akan dijadikan judul utama pada kartu belajar dan pustaka.
             </div>
           </section>
 
-          {/* Card 3: Notes with Voice to Text Button */}
+          {/* Card 3: Audio / Voice Note Materi (Opsional) */}
+          <section className="bg-surface border border-border rounded-2xl p-6 sm:p-8 flex flex-col gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h2 className="text-xl font-bold text-text-main">
+                  Audio / Voice Note Materi
+                </h2>
+                <p className="text-sm text-text-secondary mt-1">
+                  Opsional · Unggah rekaman suara penjelasan dosen atau rekam langsung dari mikrofon sebagai konteks belajar multimodal.
+                </p>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-text-secondary rounded-lg">
+                Maks. 10 MB
+              </span>
+            </div>
+
+            <input
+              id="audioFileInput"
+              type="file"
+              accept="audio/mp3,audio/mpeg,audio/wav,audio/x-m4a,audio/mp4,audio/webm,audio/ogg"
+              className="hidden"
+              disabled={isLoading || isAudioRecording}
+              onChange={(e) => {
+                handleAudioFileSelected(e.target.files?.[0] ?? null);
+                e.target.value = "";
+              }}
+            />
+
+            {/* State: Sedang Merekam */}
+            {isAudioRecording ? (
+              <div className="p-5 rounded-xl border border-red-200 bg-red-50 flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full bg-red-600 animate-ping" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-red-900">
+                      Sedang merekam suara dosen...
+                    </span>
+                    <span className="text-xs font-semibold text-red-700 font-mono">
+                      Durasi: {formatDuration(recordingDuration)}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={stopRecording}
+                  className="inline-flex items-center gap-2 h-10 px-5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-xs transition-colors"
+                >
+                  <Square className="w-4 h-4 fill-white" />
+                  <span>Selesai Rekam</span>
+                </button>
+              </div>
+            ) : audioFile ? (
+              /* State: Audio Terpilih / Terunggah */
+              <div className="bg-white border border-border rounded-xl p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 bg-teal-light rounded-lg flex items-center justify-center text-teal shrink-0">
+                      <Volume2 className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-text-main truncate">
+                        {audioFile.name}
+                      </div>
+                      <div className="text-xs text-text-secondary mt-0.5 flex items-center gap-2">
+                        <span>{formatFileSize(audioFile.size)}</span>
+                        <span>·</span>
+                        <span className="text-teal font-semibold">✓ Audio siap dianalisis</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearAudio}
+                    className="text-xs font-semibold text-danger hover:underline px-2 py-1"
+                  >
+                    Hapus Audio
+                  </button>
+                </div>
+
+                {audioPreviewUrl && (
+                  <audio
+                    controls
+                    src={audioPreviewUrl}
+                    className="w-full h-10 mt-1 rounded-lg"
+                    preload="metadata"
+                  />
+                )}
+              </div>
+            ) : (
+              /* State: Belum Ada Audio */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => document.getElementById("audioFileInput")?.click()}
+                  className="flex items-center justify-center gap-2.5 h-12 px-4 bg-white border border-border hover:border-primary hover:bg-slate-50 text-text-main text-sm font-semibold rounded-xl shadow-2xs transition-colors"
+                >
+                  <UploadCloud className="w-4 h-4 text-primary" />
+                  <span>Unggah Berkas Audio</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={startRecording}
+                  className="flex items-center justify-center gap-2.5 h-12 px-4 bg-white border border-border hover:border-teal hover:bg-teal-light text-text-main text-sm font-semibold rounded-xl shadow-2xs transition-colors"
+                >
+                  <Mic className="w-4 h-4 text-teal" />
+                  <span>Mulai Rekam Suara</span>
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* Card 4: Notes with Voice to Text Button */}
           <section className="bg-surface border border-border rounded-2xl p-6 sm:p-8 flex flex-col gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <label
@@ -515,7 +798,7 @@ export default function UploadPage() {
               >
                 <Mic className="w-3.5 h-3.5" />
                 <span>
-                  {isRecording ? "Mendengarkan suara..." : "🎤 Rekam Suara Dosen"}
+                  {isRecording ? "Mendengarkan ucapan..." : "Dikte Suara ke Catatan"}
                 </span>
               </button>
             </div>

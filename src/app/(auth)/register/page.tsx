@@ -3,18 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, AlertCircle, GraduationCap } from "lucide-react";
-
-const POPULAR_MAJORS = [
-  "Teknik Informatika",
-  "Sistem Informasi",
-  "Teknik Elektro",
-  "Manajemen",
-  "Ilmu Komunikasi",
-  "Kedokteran",
-  "Ilmu Hukum",
-  "Psikologi",
-];
+import { ArrowRight, AlertCircle } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -127,7 +116,7 @@ export default function RegisterPage() {
             onChange={(e) => setFullName(e.target.value)}
             required
             placeholder="Aditya Ramadhan"
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
         </div>
 
@@ -142,7 +131,7 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="aditya@mahasiswa.ac.id"
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
         </div>
 
@@ -157,7 +146,7 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Minimal 6 karakter"
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
         </div>
 
@@ -171,57 +160,27 @@ export default function RegisterPage() {
             value={university}
             onChange={(e) => setUniversity(e.target.value)}
             placeholder="contoh: Universitas Indonesia, Polban, ITB"
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
         </div>
 
-        {/* Program Studi dengan Sugesti & Helper AI */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <label htmlFor="programStudi" className="text-sm font-semibold text-text-main">
-              Program Studi / Jurusan <span className="text-red-500">*</span>
-            </label>
-            <span className="text-[11px] font-semibold text-teal inline-flex items-center gap-1">
-              <GraduationCap className="w-3.5 h-3.5" /> Konteks AI
-            </span>
-          </div>
+        {/* Program Studi Bersih & Bebas Diketik */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="programStudi" className="text-sm font-semibold text-text-main">
+            Program Studi / Jurusan <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             id="programStudi"
-            list="majorOptions"
             value={programStudi}
             onChange={(e) => setProgramStudi(e.target.value)}
             required
-            placeholder="Ketik atau pilih jurusan (contoh: Teknik Informatika)"
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            placeholder="Contoh: Teknik Informatika"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
-          <datalist id="majorOptions">
-            {POPULAR_MAJORS.map((m) => (
-              <option key={m} value={m} />
-            ))}
-          </datalist>
-
           <p className="text-xs text-text-secondary leading-relaxed">
             Digunakan oleh AI untuk menyesuaikan kedalaman ringkasan dan konteks soal kuis dengan jurusan Anda.
           </p>
-
-          {/* Quick Select Major Chips */}
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {POPULAR_MAJORS.slice(0, 5).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setProgramStudi(m)}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
-                  programStudi === m
-                    ? "bg-primary-light text-primary border-primary/30"
-                    : "bg-background text-text-secondary border-border hover:bg-surface"
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -236,7 +195,7 @@ export default function RegisterPage() {
             value={semester}
             onChange={(e) => setSemester(e.target.value)}
             required
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
         </div>
 

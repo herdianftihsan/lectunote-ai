@@ -1,6 +1,7 @@
 // src/app/(dashboard)/pustaka/page.tsx
 // Server Component for Pustaka Materi (1:1 _html_design_reference/pustaka-materi.html)
 
+import { connection } from "next/server";
 import { getActiveProfileId, getServiceSupabase } from "@/lib/supabase";
 import LibraryClient, {
   type LibraryStudyKit,
@@ -22,6 +23,7 @@ interface RawStudyKitRow {
 }
 
 export default async function PustakaPage() {
+  await connection();
   const supabase = getServiceSupabase();
   const profileId = await getActiveProfileId();
 

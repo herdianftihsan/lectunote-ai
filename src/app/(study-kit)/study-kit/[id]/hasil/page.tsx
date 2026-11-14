@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { getActiveProfileId, getServerSupabase } from "@/lib/supabase";
 import type {
   QuizEvaluationResult,
@@ -27,6 +28,7 @@ interface ProfileQueryResult {
 }
 
 export default async function HasilKuisPage({ params }: HasilKuisPageProps) {
+  await connection();
   const { id } = await params;
   const supabase = getServerSupabase();
   const profileId = await getActiveProfileId();

@@ -74,6 +74,13 @@ export async function getSessionProfileId(
     return null;
   }
 
+  try {
+    const { connection } = await import("next/server");
+    await connection();
+  } catch {
+    // Di luar Next.js request store scope, lanjutkan
+  }
+
   const [profileId, expiresAtText, signatureHex, ...extraParts] = token.split(".");
   const expiresAt = Number(expiresAtText);
   const signature = fromHex(signatureHex ?? "");

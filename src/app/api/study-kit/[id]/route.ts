@@ -163,10 +163,6 @@ export async function DELETE(
           `[study-kit/delete] Peringatan: File storage (${studyKit.storage_path}) gagal dihapus:`,
           storageError.message,
         );
-      } else {
-        console.log(
-          `[study-kit/delete] File PDF storage "${studyKit.storage_path}" berhasil dibersihkan.`,
-        );
       }
     } catch (storageErr) {
       console.warn(
@@ -226,10 +222,6 @@ export async function DELETE(
   } catch (revalErr) {
     console.warn("[study-kit/delete] Gagal revalidatePath:", revalErr);
   }
-
-  console.log(
-    `[study-kit/delete] Berhasil menghapus Study Kit ID: ${id} ("${studyKit.course_name}")`,
-  );
 
   return NextResponse.json(
     {

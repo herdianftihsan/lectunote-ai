@@ -97,7 +97,7 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="nama@mahasiswa.ac.id"
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
         </div>
 
@@ -112,7 +112,7 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="••••••••"
-            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="w-full h-12 px-4 bg-surface border border-border rounded-xl text-sm text-text-main focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors autofill:bg-white autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)]"
           />
         </div>
 

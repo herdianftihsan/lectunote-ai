@@ -2,6 +2,7 @@
 // Dashboard Ruang Belajar (1:1 _html_design_reference/dashboard.html)
 
 import Link from "next/link";
+import { connection } from "next/server";
 import {
   BookOpen,
   CheckCircle2,
@@ -75,6 +76,7 @@ function formatIndonesianTime(dateStr: string): string {
 }
 
 export default async function DashboardPage() {
+  await connection();
   const supabase = getServiceSupabase();
   const profileId = await getActiveProfileId();
 

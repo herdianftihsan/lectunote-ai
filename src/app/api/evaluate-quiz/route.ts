@@ -9,6 +9,7 @@ import {
   type EssayInputForEvaluation,
   type WrongMcqInput,
 } from "@/lib/gemini";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
   getActiveProfile,
   getAuthenticatedProfileId,
@@ -42,6 +43,27 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json(
       { error: "Sesi login tidak valid.", error_code: "UNAUTHENTICATED" },
       { status: 401 },
+    );
+  }
+
+  /* Rate Limiting: Maksimal 10 request per 5 menit per profile_id / IP */
+  const clientIp = getClientIp(request);
+  const rateLimitKey = `evaluate-quiz:${profileId || clientIp}`;
+  const rateCheck = checkRateLimit(rateLimitKey, 10, 5 * 60 * 1000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      {
+        error:
+          "Terlalu banyak permintaan dalam waktu singkat. Silakan tunggu beberapa saat sebelum mencoba lagi.",
+        error_code: "RATE_LIMIT_EXCEEDED",
+        retry_after_seconds: rateCheck.retryAfterSeconds,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rateCheck.retryAfterSeconds),
+        },
+      },
     );
   }
 
@@ -291,7 +313,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     };
 
     // 4. Persistensi Database (Supabase)
-    const tDbStart = performance.now();
     let studyKitUpdateDuration = 0;
     let activityLogDuration = 0;
     if (content) {
@@ -358,16 +379,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       activityLogDuration = performance.now() - tActivityLogStart;
     }
     const tDbEnd = performance.now();
-
-    // Log performa lengkap di setiap tahap
-    console.log(`[evaluate-quiz] ⏱️ PERFORMANCE AUDIT:
-- 1. Fetch study_kits: ${Math.round(tFetchEnd - tFetchStart)}ms
-- 2. MCQ Grading: ${Math.round(tMcqEnd - tMcqStart)}ms
-- 3. Gemini evaluateEssays: ${Math.round(tEssayEnd - tEssayStart)}ms
-- 4. Update study_kits: ${Math.round(studyKitUpdateDuration)}ms
-- 5. Insert activity_logs: ${Math.round(activityLogDuration)}ms
-- DB Persistence & Logs: ${Math.round(tDbEnd - tDbStart)}ms
-- TOTAL API DURATION: ${Math.round(tDbEnd - tStart)}ms`);
 
     // 5. Revalidasi cache rute hasil & pustaka
     try {

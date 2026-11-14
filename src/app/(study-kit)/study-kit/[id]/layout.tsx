@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import StudyKitHeader from "./StudyKitHeader";
 import StudyKitLayoutShell from "@/components/layout/StudyKitLayoutShell";
 import {
@@ -44,6 +45,7 @@ async function StudyKitLayoutContent({
   children,
   params,
 }: StudyKitLayoutProps) {
+  await connection();
   const { id } = await params;
   const supabase = getServerSupabase();
   const profileId = await getActiveProfileId();

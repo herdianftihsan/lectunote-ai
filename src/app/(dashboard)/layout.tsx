@@ -1,5 +1,6 @@
 // src/app/(dashboard)/layout.tsx
 import React, { Suspense } from "react";
+import { connection } from "next/server";
 import { getActiveProfile } from "@/lib/supabase";
 import DashboardNavigation from "@/components/layout/DashboardNavigation";
 
@@ -28,6 +29,7 @@ async function DashboardShell({
 }: {
   children: React.ReactNode;
 }) {
+  await connection();
   const profile = await getActiveProfile();
 
   return (

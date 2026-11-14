@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { classifyGeminiError, generateStudyKit } from "@/lib/gemini";
 import { extractPdfText, PdfExtractionError } from "@/lib/pdf-extractor";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
   getActiveProfile,
   getAuthenticatedProfileId,
@@ -20,12 +21,27 @@ export const maxDuration = 180;
 
 const STORAGE_BUCKET = "study-docs";
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_AUDIO_BYTES = 10 * 1024 * 1024; // 10 MB
 const MIN_TEXT_CHARS = 50;
 const MAX_COURSE_NAME_LENGTH = 100;
 const MAX_NOTES_LENGTH = 20_000;
 
 const PDF_MIME = "application/pdf";
 const PDF_MAGIC = "%PDF-";
+
+const ALLOWED_AUDIO_MIMES = [
+  "audio/mp3",
+  "audio/mpeg",
+  "audio/wav",
+  "audio/x-m4a",
+  "audio/m4a",
+  "audio/mp4",
+  "audio/webm",
+  "audio/ogg",
+  "audio/aac",
+  "audio/flac",
+  "audio/x-wav",
+];
 
 /* -------------------------------------------------------------------------- */
 /* Helper                                                                     */
@@ -60,16 +76,15 @@ function toSafeStorageName(fileName: string): string {
 async function removeUploadedFile(
   supabase: SupabaseClient,
   storagePath: string,
-  log: (message: string) => void,
+  logError: (message: string) => void,
 ): Promise<void> {
   try {
     const { error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .remove([storagePath]);
-    if (error) log(`Cleanup storage gagal: ${error.message}`);
-    else log("Cleanup storage berhasil (file dihapus).");
+    if (error) logError(`Cleanup storage gagal: ${error.message}`);
   } catch (error: unknown) {
-    log(`Cleanup storage gagal: ${errorMessage(error)}`);
+    logError(`Cleanup storage gagal: ${errorMessage(error)}`);
   }
 }
 
@@ -79,8 +94,6 @@ async function removeUploadedFile(
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const requestId = crypto.randomUUID().slice(0, 8);
-  const log = (message: string): void =>
-    console.log(`[generate-kit:${requestId}] ${message}`);
   const logError = (message: string): void =>
     console.error(`[generate-kit:${requestId}] ERROR ${message}`);
 
@@ -91,6 +104,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const activeProfileId = await getAuthenticatedProfileId();
     if (!activeProfileId) {
       return fail(401, "UNAUTHENTICATED", "Silakan masuk untuk membuat Study Kit.");
+    }
+
+    /* Rate Limiting: Maksimal 5 request per 10 menit per profile_id / IP */
+    const clientIp = getClientIp(req);
+    const rateLimitKey = `generate-kit:${activeProfileId || clientIp}`;
+    const rateCheck = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "Terlalu banyak permintaan dalam waktu singkat. Silakan tunggu beberapa saat sebelum mencoba lagi.",
+          error_code: "RATE_LIMIT_EXCEEDED",
+          retry_after_seconds: rateCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateCheck.retryAfterSeconds),
+          },
+        },
+      );
     }
 
     /* 1. Terima input ------------------------------------------------------ */
@@ -106,6 +140,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const file = formData.get("file");
+    const rawAudioFile = formData.get("audio_file");
     const rawNotes = formData.get("notes");
     const rawCourseName = formData.get("course_name");
 
@@ -136,6 +171,36 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
+    /* Validasi file audio (opsional) -------------------------------------- */
+    let audioInput: { mimeType: string; base64Data: string } | null = null;
+    if (rawAudioFile instanceof File && rawAudioFile.size > 0) {
+      if (rawAudioFile.size > MAX_AUDIO_BYTES) {
+        return fail(
+          400,
+          "AUDIO_FILE_TOO_LARGE",
+          `Ukuran berkas audio ${formatFileSize(rawAudioFile.size)} melebihi batas ${formatFileSize(MAX_AUDIO_BYTES)}.`,
+        );
+      }
+      const rawMime = rawAudioFile.type
+        ? rawAudioFile.type.split(";")[0].trim().toLowerCase()
+        : "";
+      const isAllowedMime =
+        rawMime.startsWith("audio/") || ALLOWED_AUDIO_MIMES.includes(rawMime);
+      if (!isAllowedMime) {
+        return fail(
+          400,
+          "INVALID_AUDIO_FORMAT",
+          "Format berkas audio belum didukung. Gunakan MP3, M4A, WAV, WebM, atau OGG.",
+        );
+      }
+
+      const audioBuffer = Buffer.from(await rawAudioFile.arrayBuffer());
+      audioInput = {
+        mimeType: rawMime || "audio/mp3",
+        base64Data: audioBuffer.toString("base64"),
+      };
+    }
+
     /* 2. Validasi file ----------------------------------------------------- */
     if (!(file instanceof File) || file.size === 0) {
       return fail(400, "NO_FILE_PROVIDED", "Berkas PDF wajib diunggah.");
@@ -164,9 +229,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         "Isi berkas bukan PDF yang valid.",
       );
     }
-    log(
-      `Input valid: "${file.name}" (${formatFileSize(file.size)}), mata kuliah "${courseName}"`,
-    );
 
     /* 3. Upload ke Supabase Storage ---------------------------------------- */
     supabase = getServiceSupabase();
@@ -188,7 +250,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
     uploadedPath = storagePath;
-    log(`Upload berhasil: ${storagePath}`);
 
     /* 4. Ekstraksi teks (pdf-parse) ---------------------------------------- */
     let extracted;
@@ -197,7 +258,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     } catch (error: unknown) {
       if (error instanceof PdfExtractionError) {
         logError(`Ekstraksi PDF gagal: ${errorMessage(error.cause ?? error)}`);
-        await removeUploadedFile(supabase, uploadedPath, log);
+        await removeUploadedFile(supabase, uploadedPath, logError);
         return fail(
           422,
           "UNREADABLE_PDF_TEXT",
@@ -206,16 +267,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
       throw error;
     }
-    log(
-      `Ekstraksi selesai: ${extracted.pageCount} halaman, ${extracted.plainCharCount} karakter${extracted.truncated ? " (dipotong)" : ""}`,
-    );
 
     /* 5. Validasi teks (anti PDF gambar/scan) ------------------------------ */
     if (extracted.plainCharCount < MIN_TEXT_CHARS) {
-      log(
-        `Teks terlalu sedikit (${extracted.plainCharCount} < ${MIN_TEXT_CHARS}), ditolak.`,
-      );
-      await removeUploadedFile(supabase, uploadedPath, log);
+      await removeUploadedFile(supabase, uploadedPath, logError);
       return fail(
         422,
         "UNREADABLE_PDF_TEXT",
@@ -224,7 +279,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     /* 6. Gemini AI (Structured Output) ------------------------------------- */
-    const startedAt = performance.now();
     let content;
     const activeProfile = await getActiveProfile().catch(() => null);
     try {
@@ -233,6 +287,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           courseName,
           pdfText: extracted.formattedText,
           notes,
+          audio: audioInput,
         },
         {
           programStudi: activeProfile?.program_studi,
@@ -243,10 +298,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     } catch (error: unknown) {
       const failure = classifyGeminiError(error);
       logError(`Gemini gagal [${failure.code}]: ${errorMessage(error)}`);
-      await removeUploadedFile(supabase, uploadedPath, log);
+      await removeUploadedFile(supabase, uploadedPath, logError);
       return fail(failure.status, failure.code, failure.message);
     }
-    log(`Gemini selesai dalam ${Math.round(performance.now() - startedAt)} ms`);
 
     /* 7. Simpan ke database ------------------------------------------------ */
     // Kolom mengikuti skema tabel `study_kits` yang AKTUAL di Supabase (profile_id,
@@ -273,7 +327,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       logError(
         `Insert study_kits gagal: code=${code} message=${insertError?.message ?? "no row returned"}`,
       );
-      await removeUploadedFile(supabase, uploadedPath, log);
+      await removeUploadedFile(supabase, uploadedPath, logError);
       // PGRST204 = kolom tidak ada di schema cache PostgREST (migrasi belum dijalankan).
       const columnMissing =
         code === "PGRST204" && /kit_content/.test(insertError?.message ?? "");
@@ -289,7 +343,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
     uploadedPath = null; // sudah terhubung ke baris DB, jangan dibersihkan lagi
-    log(`Study kit tersimpan: id=${inserted.id}`);
 
     // Catatan aktivitas untuk Dashboard & Pustaka (PRD 5.2 langkah 5). Best-effort:
     // kegagalan di sini tidak boleh menggagalkan Study Kit yang sudah tersimpan.
@@ -318,7 +371,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (error instanceof Error && error.stack) console.error(error.stack);
 
     if (supabase && uploadedPath) {
-      await removeUploadedFile(supabase, uploadedPath, log);
+      await removeUploadedFile(supabase, uploadedPath, logError);
     }
 
     if (error instanceof SupabaseConfigError) {

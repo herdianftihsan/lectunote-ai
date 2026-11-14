@@ -80,46 +80,49 @@ export default function FlashcardViewer({
       </div>
 
       {/* Interactive 3D Flip Card */}
-      <div className="w-full min-h-[340px] [perspective:1000px] cursor-pointer" onClick={() => setIsFlipped((prev) => !prev)}>
+      <div
+        className="w-full max-w-[520px] mx-auto aspect-[4/3] min-h-[360px] sm:min-h-[400px] [perspective:1200px] cursor-pointer select-none"
+        onClick={() => setIsFlipped((prev) => !prev)}
+      >
         <div
-          className={`relative w-full min-h-[340px] rounded-2xl transition-transform duration-500 [transform-style:preserve-3d] ${
+          className={`relative w-full h-full rounded-2xl transition-transform duration-500 [transform-style:preserve-3d] ${
             isFlipped ? "[transform:rotateY(180deg)]" : ""
           }`}
         >
           {/* Sisi Depan (Pertanyaan) */}
-          <div className="absolute inset-0 flex flex-col justify-between rounded-2xl border border-primary bg-primary-light p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)] [backface-visibility:hidden]">
+          <div className="absolute inset-0 flex flex-col justify-between rounded-2xl border border-primary bg-primary-light p-6 sm:p-8 shadow-[0_4px_12px_rgba(0,0,0,0.04)] [backface-visibility:hidden] overflow-y-auto">
             <div className="flex flex-col items-start gap-4">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary-dark rounded-lg text-sm font-semibold">
                 <span>○</span>
                 <span>Pertanyaan · Sisi depan</span>
               </div>
-              <h3 className="text-2xl font-semibold text-text-main leading-snug pt-2">
+              <h3 className="text-xl sm:text-2xl font-semibold text-text-main leading-snug pt-2">
                 {currentCard?.question ?? "Pertanyaan belum tersedia."}
               </h3>
             </div>
 
             <div className="flex items-center justify-between text-xs text-text-secondary pt-6 mt-auto">
-              <span>
+              <span className="line-clamp-2">
                 {currentCard?.question_hint
                   ? `Petunjuk: ${currentCard.question_hint}`
                   : "Klik kartu atau tekan tombol 'Balik kartu' untuk melihat jawaban."}
               </span>
-              <span className="font-medium text-primary">Klik untuk balik ⟲</span>
+              <span className="font-medium text-primary shrink-0 ml-2">Klik untuk balik ⟲</span>
             </div>
           </div>
 
           {/* Sisi Belakang (Jawaban) */}
-          <div className="absolute inset-0 flex flex-col justify-between rounded-2xl border border-border bg-surface p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)] [transform:rotateY(180deg)] [backface-visibility:hidden]">
+          <div className="absolute inset-0 flex flex-col justify-between rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-[0_4px_12px_rgba(0,0,0,0.04)] [transform:rotateY(180deg)] [backface-visibility:hidden] overflow-y-auto">
             <div className="flex flex-col items-start gap-3">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-background text-text-secondary rounded-lg text-sm font-semibold">
                 <span>✓</span>
                 <span>Jawaban · Sisi belakang</span>
               </div>
-              <h3 className="text-2xl font-semibold text-text-main leading-snug pt-1">
+              <h3 className="text-xl sm:text-2xl font-semibold text-text-main leading-snug pt-1">
                 {currentCard?.answer_heading || currentCard?.answer || "Jawaban belum tersedia."}
               </h3>
               {currentCard?.answer_body && (
-                <p className="text-base text-text-main leading-relaxed mt-1">
+                <p className="text-sm sm:text-base text-text-main leading-relaxed mt-1">
                   {currentCard.answer_body}
                 </p>
               )}
@@ -129,14 +132,14 @@ export default function FlashcardViewer({
               <span>
                 Rujukan materi · {currentCard?.page_reference || "hlm. sumber"}
               </span>
-              <span className="font-medium text-primary">Klik untuk balik ⟲</span>
+              <span className="font-medium text-primary shrink-0 ml-2">Klik untuk balik ⟲</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Controls Row */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center justify-center gap-3 flex-wrap max-w-[520px] mx-auto w-full">
         <button
           type="button"
           onClick={() => navigateTo(currentIndex - 1)}
@@ -144,7 +147,7 @@ export default function FlashcardViewer({
           className="inline-flex items-center gap-2 h-12 px-5 rounded-xl border border-border bg-surface text-primary text-sm font-semibold hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Kartu sebelumnya</span>
+          <span>Sebelumnya</span>
         </button>
 
         <button
@@ -162,13 +165,13 @@ export default function FlashcardViewer({
           disabled={currentIndex === total - 1}
           className="inline-flex items-center gap-2 h-12 px-5 rounded-xl border border-border bg-surface text-primary text-sm font-semibold hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
         >
-          <span>Kartu berikutnya</span>
+          <span>Berikutnya</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
 
       {/* Comprehension Feedback Card */}
-      <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] max-w-[520px] mx-auto w-full">
         <h3 className="text-lg font-bold text-text-main">
           Evaluasi pemahamanmu
         </h3>

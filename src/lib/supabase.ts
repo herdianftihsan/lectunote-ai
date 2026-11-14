@@ -152,6 +152,12 @@ export function getServerSupabase(): SupabaseClient {
  * Mengembalikan null jika belum ada sesi terautentikasi.
  */
 export async function getAuthenticatedProfileId(): Promise<string | null> {
+  try {
+    const { connection } = await import("next/server");
+    await connection();
+  } catch {
+    // Di luar request scope Next.js (misal script standalone), lanjutkan
+  }
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   return getSessionProfileId(cookieStore.get(SESSION_COOKIE_NAME)?.value);
