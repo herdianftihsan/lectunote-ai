@@ -15,9 +15,9 @@ import {
   SupabaseConfigError,
 } from "@/lib/supabase";
 
-// Gemini + parsing PDF bisa memakan waktu puluhan detik (termasuk satu kali retry).
-// Di Vercel, nilai ini dibatasi oleh plan (Hobby tanpa Fluid Compute: 60 detik).
-export const maxDuration = 180;
+// Gemini + parsing PDF bisa memakan waktu belasan detik (termasuk satu kali retry).
+// Di Vercel (paket Hobby), fungsi Serverless dibatasi maksimal 60 detik.
+export const maxDuration = 60;
 
 const STORAGE_BUCKET = "study-docs";
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
