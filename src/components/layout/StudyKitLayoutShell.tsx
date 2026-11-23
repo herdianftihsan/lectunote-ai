@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/brand/Logo";
 import {
   LayoutDashboard,
   UploadCloud,
@@ -71,7 +72,7 @@ export default function StudyKitLayoutShell({
   ];
 
   return (
-    <div className="flex min-h-screen w-full bg-background relative">
+    <div className="flex min-h-screen w-full bg-background relative" suppressHydrationWarning>
       {/* Mobile Drawer Backdrop */}
       {mobileMenuOpen && (
         <div
@@ -89,31 +90,11 @@ export default function StudyKitLayoutShell({
         <div className="flex flex-col gap-6">
           {/* Brand Header */}
           <div className="flex items-center justify-between">
-            <Link
+            <Logo
+              variant="sidebar"
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="inline-flex items-center gap-3 text-inherit no-underline"
-            >
-              <div className="w-9 h-10 bg-primary rounded-lg flex items-center justify-center shrink-0 shadow-[0_4px_10px_rgba(21,101,192,0.2)]">
-                <svg
-                  viewBox="0 0 24 24"
-                  width="22"
-                  height="22"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
-                  <path d="M4 5.5v15M8 7h7M8 10h5" />
-                  <path d="m14 13 5-5 2 2-5 5-3 1z" />
-                </svg>
-              </div>
-              <div className="text-xl font-bold leading-tight text-text-main tracking-tight">
-                LectuNote <span className="text-teal">AI</span>
-              </div>
-            </Link>
+            />
 
             <button
               type="button"

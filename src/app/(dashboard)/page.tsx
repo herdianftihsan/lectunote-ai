@@ -194,7 +194,7 @@ export default async function DashboardPage() {
   const recentKits = allKits.slice(0, 4);
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-6 w-full" suppressHydrationWarning>
       {/* Graceful Error Fallback Banner */}
       {kitsResult.error && (
         <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-sm">
@@ -244,8 +244,8 @@ export default async function DashboardPage() {
       >
         {/* Stat 1: Total Study Kits */}
         <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <div className="w-11 h-11 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0">
-            <BookOpen className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0">
+            <BookOpen className="w-6 h-6" />
           </div>
           <div className="flex flex-col">
             <div className="text-3xl font-bold text-text-main leading-none">
@@ -259,8 +259,8 @@ export default async function DashboardPage() {
 
         {/* Stat 2: Kuis selesai */}
         <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <div className="w-11 h-11 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
           <div className="flex flex-col">
             <div className="text-3xl font-bold text-text-main leading-none">
@@ -274,8 +274,8 @@ export default async function DashboardPage() {
 
         {/* Stat 3: Rata-rata skor PG */}
         <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <div className="w-11 h-11 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0">
-            <TrendingUp className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0">
+            <TrendingUp className="w-6 h-6" />
           </div>
           <div className="flex flex-col">
             <div className="text-3xl font-bold text-text-main leading-none">
