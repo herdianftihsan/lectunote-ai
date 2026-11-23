@@ -4,13 +4,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { getActiveProfileId, getServerSupabase } from "@/lib/supabase";
+import {
+  DEFAULT_PROFILE_ID,
+  getActiveProfileId,
+  getServerSupabase,
+} from "@/lib/supabase";
 import type {
   QuizEvaluationResult,
   StudyKitContent,
 } from "@/types/study-kit";
-
-export const instant = false;
 
 interface HasilKuisPageProps {
   params: Promise<{ id: string }>;
@@ -21,6 +23,7 @@ interface StudyKitQueryResult {
   course_name: string;
   topic_title: string;
   kit_content: StudyKitContent | string | null;
+  profile_id?: string;
 }
 
 interface ProfileQueryResult {
@@ -36,9 +39,8 @@ export default async function HasilKuisPage({ params }: HasilKuisPageProps) {
   const [studyKitResult, profileResult] = await Promise.all([
     supabase
       .from("study_kits")
-      .select("id, course_name, topic_title, kit_content")
+      .select("id, course_name, topic_title, kit_content, profile_id")
       .eq("id", id)
-      .eq("profile_id", profileId)
       .maybeSingle<StudyKitQueryResult>(),
     supabase
       .from("profiles")
@@ -58,11 +60,19 @@ export default async function HasilKuisPage({ params }: HasilKuisPageProps) {
     });
   }
 
-  if (!studyKitResult.data) {
+  const studyKit = studyKitResult.data;
+  if (!studyKit) {
     notFound();
   }
 
-  const studyKit = studyKitResult.data;
+  // Izinkan akses jika milik profil aktif atau akun demo pratinjau
+  if (
+    studyKit.profile_id &&
+    studyKit.profile_id !== profileId &&
+    profileId !== DEFAULT_PROFILE_ID
+  ) {
+    notFound();
+  }
   const profileName = profileResult.data?.full_name?.trim();
   const firstName = profileName?.split(/\s+/)[0] || "Aditya";
   const courseName = studyKit.course_name || "Materi Pembelajaran";

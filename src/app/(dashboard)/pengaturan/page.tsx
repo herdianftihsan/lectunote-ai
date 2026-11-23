@@ -2,28 +2,12 @@
 // Halaman Pengaturan & Profil (Server Component + Client Form)
 // Mengacu 1:1 pada _html_design_reference/pengaturan&pofile.html
 
-import React, { Suspense } from "react";
+import React from "react";
 import { connection } from "next/server";
 import { getActiveProfile } from "@/lib/supabase";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
 
-export const instant = false;
-
-export default function PengaturanPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-[300px] flex items-center justify-center text-sm text-text-secondary" role="status">
-          Memuat pengaturan &amp; profil...
-        </div>
-      }
-    >
-      <PengaturanContent />
-    </Suspense>
-  );
-}
-
-async function PengaturanContent() {
+export default async function PengaturanPage() {
   await connection();
   const profile = await getActiveProfile();
 

@@ -274,16 +274,43 @@ export default function UploadPage() {
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
 
-      const data: GenerateKitResponse | null = await response
-        .json()
-        .catch(() => null);
+      const responseText = await response.text();
+      let data: (GenerateKitResponse & { message?: string; detail?: string }) | null = null;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        // Respons bukan JSON (misal HTML gateway timeout atau crash server)
+      }
 
       if (!response.ok || !data?.id) {
+        const extractedMessage =
+          data?.error ||
+          (typeof data?.message === "string" && !data.message.includes("digest")
+            ? data.message
+            : null) ||
+          data?.detail;
+
+        if (extractedMessage) {
+          throw new Error(extractedMessage);
+        }
+
+        if (response.status === 401) {
+          throw new Error("Sesi login belum aktif. Silakan masuk terlebih dahulu.");
+        }
+        if (response.status === 413) {
+          throw new Error("Ukuran berkas materi terlalu besar untuk diproses server.");
+        }
+        if (response.status === 429) {
+          throw new Error("Terlalu banyak permintaan dalam waktu singkat. Tunggu beberapa saat lalu coba lagi.");
+        }
+        if (response.status === 502 || response.status === 504) {
+          throw new Error("Layanan AI memakan waktu lebih lama dari biasanya. Coba unggah materi yang lebih ringkas atau coba lagi.");
+        }
+
         throw new Error(
-          data?.error ??
-            (response.ok
-              ? "Server tidak mengembalikan ID Study Kit. Silakan coba lagi."
-              : `Study Kit belum berhasil dibuat (HTTP ${response.status}). Silakan coba lagi.`),
+          response.ok
+            ? "Server tidak mengembalikan ID Study Kit. Silakan coba lagi."
+            : `Study Kit belum berhasil dibuat (Kode: ${response.status}). Silakan coba lagi beberapa saat lagi.`
         );
       }
 

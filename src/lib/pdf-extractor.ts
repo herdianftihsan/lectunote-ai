@@ -83,10 +83,30 @@ export async function extractPdfText(
       truncated,
     };
   } catch (error: unknown) {
-    if (error instanceof Error && CONTENT_ERROR_NAMES.has(error.name)) {
-      throw new PdfExtractionError("Gagal membaca isi PDF.", { cause: error });
+    if (error instanceof PdfExtractionError) {
+      throw error;
     }
-    throw error;
+    const errMessage = error instanceof Error ? error.message : String(error);
+    const errName = error instanceof Error ? error.name : "";
+    const isContentError =
+      CONTENT_ERROR_NAMES.has(errName) ||
+      /invalid|password|format|corrupt|damaged|encrypt|stream/i.test(errMessage) ||
+      /InvalidPDF|PasswordException|FormatError|AbortException|UnknownErrorException/i.test(
+        (error as object)?.constructor?.name || "",
+      );
+
+    if (isContentError) {
+      throw new PdfExtractionError(
+        "PDF tidak dapat dibaca. Berkas mungkin rusak atau dilindungi password.",
+        { cause: error },
+      );
+    }
+    // Jika terjadi kegagalan parser lain, tetap tangani sebagai kesalahan ekstraksi PDF (422)
+    // agar tidak mengakibatkan HTTP 500 fatal di server.
+    throw new PdfExtractionError(
+      "Gagal mengekstrak teks materi dari berkas PDF.",
+      { cause: error },
+    );
   } finally {
     await parser.destroy().catch(() => undefined);
   }

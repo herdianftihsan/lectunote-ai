@@ -1,22 +1,22 @@
+// src/app/(study-kit)/study-kit/[id]/layout.tsx
 import type { ReactNode } from "react";
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import StudyKitHeader from "./StudyKitHeader";
 import StudyKitLayoutShell from "@/components/layout/StudyKitLayoutShell";
 import {
+  DEFAULT_PROFILE_ID,
   getActiveProfile,
   getActiveProfileId,
   getServerSupabase,
 } from "@/lib/supabase";
-
-export const instant = false;
 
 interface StudyKitHeaderRecord {
   course_name: string;
   topic_title: string;
   file_name: string;
   file_size_bytes: number | null;
+  profile_id: string;
 }
 
 interface StudyKitLayoutProps {
@@ -24,24 +24,7 @@ interface StudyKitLayoutProps {
   params: Promise<{ id: string }>;
 }
 
-export default function StudyKitLayout({
-  children,
-  params,
-}: StudyKitLayoutProps) {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen p-6 text-sm text-text-secondary" role="status">
-          Memuat Study Kit...
-        </div>
-      }
-    >
-      <StudyKitLayoutContent params={params}>{children}</StudyKitLayoutContent>
-    </Suspense>
-  );
-}
-
-async function StudyKitLayoutContent({
+export default async function StudyKitLayout({
   children,
   params,
 }: StudyKitLayoutProps) {
@@ -49,12 +32,12 @@ async function StudyKitLayoutContent({
   const { id } = await params;
   const supabase = getServerSupabase();
   const profileId = await getActiveProfileId();
+
   const [studyKitResult, profileResult] = await Promise.all([
     supabase
       .from("study_kits")
-      .select("course_name, topic_title, file_name, file_size_bytes")
+      .select("course_name, topic_title, file_name, file_size_bytes, profile_id")
       .eq("id", id)
-      .eq("profile_id", profileId)
       .maybeSingle<StudyKitHeaderRecord>(),
     getActiveProfile(),
   ]);
@@ -65,10 +48,17 @@ async function StudyKitLayoutContent({
       cause: studyKitResult.error,
     });
   }
-  if (!studyKitResult.data) {
+
+  const studyKit = studyKitResult.data;
+  if (!studyKit) {
     notFound();
   }
-  const studyKit = studyKitResult.data;
+
+  // Izinkan akses jika milik profil aktif atau akun demo pratinjau
+  if (studyKit.profile_id !== profileId && profileId !== DEFAULT_PROFILE_ID) {
+    notFound();
+  }
+
   const profile = profileResult;
 
   return (

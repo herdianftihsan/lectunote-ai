@@ -22,8 +22,6 @@ import {
 } from "@/lib/supabase";
 import type { StudyKitContent } from "@/types/study-kit";
 
-export const instant = false;
-
 interface DashboardStudyKitRow {
   id: string;
   course_name: string;

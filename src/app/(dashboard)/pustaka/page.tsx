@@ -9,8 +9,6 @@ import LibraryClient, {
 } from "@/components/dashboard/LibraryClient";
 import type { StudyKitContent } from "@/types/study-kit";
 
-export const instant = false;
-
 interface RawStudyKitRow {
   id: string;
   course_name: string;

@@ -4,8 +4,6 @@ import FlashcardViewer, {
 } from "@/components/study-kit/FlashcardViewer";
 import { fetchStudyKitContent } from "@/lib/study-kit-content";
 
-export const instant = false;
-
 interface FlashcardPageProps {
   params: Promise<{ id: string }>;
 }

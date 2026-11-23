@@ -10,6 +10,7 @@ import { extractPdfText, PdfExtractionError } from "@/lib/pdf-extractor";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
   getActiveProfile,
+  getActiveProfileId,
   getAuthenticatedProfileId,
   getServiceSupabase,
   SupabaseConfigError,
@@ -101,10 +102,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let supabase: SupabaseClient | null = null;
 
   try {
-    const activeProfileId = await getAuthenticatedProfileId();
-    if (!activeProfileId) {
-      return fail(401, "UNAUTHENTICATED", "Silakan masuk untuk membuat Study Kit.");
-    }
+    // Prioritaskan profil user terautentikasi (cookie sesi bertanda tangan).
+    // Jika belum login / dalam mode demo pratinjau, gunakan getActiveProfileId() (Aditya Ramadhan)
+    // agar sesi latihan / demonstrasi pitch tidak terhenti.
+    const activeProfileId =
+      (await getAuthenticatedProfileId()) || (await getActiveProfileId());
 
     /* Rate Limiting: Maksimal 5 request per 10 menit per profile_id / IP */
     const clientIp = getClientIp(req);
@@ -230,26 +232,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    /* 3. Upload ke Supabase Storage ---------------------------------------- */
+    /* 3. Upload ke Supabase Storage (Best-Effort Fault-Tolerant) ------------ */
     supabase = getServiceSupabase();
     const storagePath = `${activeProfileId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${toSafeStorageName(file.name)}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(storagePath, buffer, { contentType: PDF_MIME, upsert: false });
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(storagePath, buffer, { contentType: PDF_MIME, upsert: true });
 
-    if (uploadError) {
-      logError(`Upload storage gagal: ${uploadError.message}`);
-      const bucketMissing = /bucket not found/i.test(uploadError.message);
-      return fail(
-        500,
-        bucketMissing ? "STORAGE_BUCKET_MISSING" : "STORAGE_UPLOAD_FAILED",
-        bucketMissing
-          ? `Bucket "${STORAGE_BUCKET}" belum dibuat di Supabase Storage.`
-          : "Berkas belum berhasil disimpan. Silakan coba lagi.",
+      if (uploadError) {
+        logError(
+          `Upload storage tidak berhasil (${uploadError.message}). Melanjutkan pembuatan Study Kit...`,
+        );
+        uploadedPath = null;
+      } else {
+        uploadedPath = storagePath;
+      }
+    } catch (storageErr) {
+      logError(
+        `Upload storage mengalami kendala jaringan (${errorMessage(storageErr)}). Melanjutkan pembuatan Study Kit...`,
       );
+      uploadedPath = null;
     }
-    uploadedPath = storagePath;
 
     /* 4. Ekstraksi teks (pdf-parse) ---------------------------------------- */
     let extracted;
@@ -377,10 +382,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (error instanceof SupabaseConfigError) {
       return fail(500, "SUPABASE_NOT_CONFIGURED", error.message);
     }
+
+    const geminiFailure = classifyGeminiError(error);
+    if (geminiFailure.code !== "GENERATION_FAILED") {
+      return fail(geminiFailure.status, geminiFailure.code, geminiFailure.message);
+    }
+
     return fail(
       500,
       "GENERATION_FAILED",
-      "Study Kit belum berhasil dibuat. Terjadi kendala teknis.",
+      "Study Kit belum berhasil dibuat. Terjadi kendala teknis pada server.",
     );
   }
 }

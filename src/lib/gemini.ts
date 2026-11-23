@@ -549,16 +549,19 @@ export async function generateStudyKit(
           contentParts.length === 1 ? prompt : contentParts,
         );
       } catch (error: unknown) {
-        const isTemporarilyUnavailable =
-          error instanceof GoogleGenerativeAIFetchError && error.status === 503;
+        const isTransientError =
+          (error instanceof GoogleGenerativeAIFetchError &&
+            (error.status === 503 ||
+              error.status === 500 ||
+              error.status === 504 ||
+              error.status === 429)) ||
+          /quota|rate limit|resource.?exhausted|overloaded|high demand|503|500|timed out|abort/i.test(
+            error instanceof Error ? error.message : "",
+          );
 
-        if (!isTemporarilyUnavailable) {
-          throw error;
-        }
-
-        if (modelIndex < modelNames.length - 1) {
+        if (isTransientError && modelIndex < modelNames.length - 1) {
           console.warn(
-            `[gemini] Model ${modelName} sedang sibuk (503); beralih ke model cadangan ${modelNames[modelIndex + 1]}.`,
+            `[gemini] Model ${modelName} mengalami kendala sementara; beralih ke model cadangan ${modelNames[modelIndex + 1]}.`,
           );
           break;
         }
